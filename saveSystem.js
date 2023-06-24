@@ -84,7 +84,7 @@ void function saveRetrieve() {//loads save file if one is found
 		document.querySelector('#mufCount').innerHTML = suffixApplier(gameData.muffinCount);
 		document.querySelector('#MPS').innerHTML = suffixApplier(gameData.MPS);
 		document.querySelector('#nameTXT').innerHTML = gameData.name;
-		// multiBuyStateCheck();
+		multiBuyStateCheck();
 		if (gameData.versionID != document.querySelector('#version-number-txt').innerHTML) {//check if version is out of date
 			document.querySelector('#version-number-alert-id').style.visibility = 'visible';
 		}
