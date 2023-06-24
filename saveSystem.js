@@ -62,10 +62,9 @@ void function saveRetrieve() {//loads save file if one is found
 		gameData.upgradeClicker = new BaseProducer(temp.upgradeClicker.amount, temp.upgradeClicker.cost, 50, temp.upgradeClicker.id);
 		gameData.upgradeClicker.element.querySelector('#price').innerHTML = suffixApplier(gameData.upgradeClicker.cost);
 		gameData.upgradeClicker.element.querySelector('#counter').innerHTML = gameData.upgradeClicker.amount
-		for (let i = 0; i < temp.producers.length; i++) {//redefine classes on producers
-			const data = temp.producers[i];
-			gameData.producers[i] = new Producer(data.amount, data.cost, data.constCost, data.each, data.constEach, data.id).display();
-		}
+		gameData.producers = temp.producers.map((bin) => {
+			return new Producer(bin.amount, bin.cost, bin.constCost, bin.each, bin.constEach, bin.id).display();
+		});
 		document.querySelector('#sellButton').style.backgroundColor = gameData.sellState ? 'lightgreen' : '#FF4A3F';
 		document.querySelector('#prestigePoints1').innerHTML = `You have ${suffixApplier(gameData.prestigeSys.points)} prestige points`;
 		document.querySelector('#prestigePoints2').innerHTML = `You have ${suffixApplier(gameData.prestigeSys.points)} prestige points`;
@@ -76,10 +75,9 @@ void function saveRetrieve() {//loads save file if one is found
 		document.querySelector('#head-start-cost').innerHTML = `${suffixApplier(gameData.prestigeSys.headStart.cost)} pts`;
 		document.querySelector('#cost-redux-level').innerHTML = `${Math.round(gameData.prestigeSys.costRedux.amount * 100)}%`;
 		document.querySelector('#cost-redux-cost').innerHTML = `${suffixApplier(gameData.prestigeSys.costRedux.cost)} pts`;
-		for (let i = 0; i < temp.skins.length; i++) {//redefine class on skin items
-			const data = temp.skins[i];
-			gameData.skins[i] = new SkinItem(data.IMG, data.lockState, data.id, data.currentSkin, data.cost).display();
-		}
+		gameData.skins = temp.skins.map((bin) => {
+			return new SkinItem(bin.IMG, bin.lockState, bin.id, bin.currentSkin, bin.cost).display();
+		});
 		gameData.prestigeSys.clock.mins = temp.prestigeSys.clock.mins;
 		gameData.prestigeSys.clock.secs = temp.prestigeSys.clock.secs;
 		document.querySelector('.casino-modal-btn').style.visibility = (gameData.prestigeSys.prestigeCount >= 1) ? 'visible' : 'hidden';
