@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="style.css">
+	<title>Spinner</title>
+</head>
+<body onload="toggleModalAnimation()">
+
+	<div class="modal" id="modal">
+		<div class="bet-input">
+			<p class="bet-input-txt">Input Bet</p>
+			<input type="number" id="bet-input-inp" placeholder="Bet">
+		</div>
+		<div class="choose-spinner">
+			<p class="choose-spinner-txt">Choose Spinner</p>
+			<div class="choose-spinner-canvas-container">
+				<div class="choose-spinner-canvas" data-segments="3" data-selected="false" data-returns="2%">
+					<p>3 Sectors</p>
+					<div style="pointer-events: none;">
+						<canvas width="150" height="150" id="choose-spinner-canvas-1"></canvas>
+						<img id="select-arrow-img" src="img/spinner-arrow.png" alt="arrow" draggable="false">
+					</div>
+					<p>Returns 2x</p>
+				</div>
+				<div class="choose-spinner-canvas" data-segments="6" data-selected="false" data-returns="3.5%">
+					<p>6 Sectors</p>
+					<div style="pointer-events: none;">
+						<canvas width="150" height="150" id="choose-spinner-canvas-2"></canvas>
+						<img id="select-arrow-img" src="img/spinner-arrow.png" alt="arrow" draggable="false">
+					</div>
+					<p>Returns 3.5x</p>
+				</div>
+				<div class="choose-spinner-canvas" data-segments="8" data-selected="false" data-returns="5%">
+					<p>8 Sectors</p>
+					<div style="pointer-events: none;">
+						<canvas width="150" height="150" id="choose-spinner-canvas-3"></canvas>
+						<img id="select-arrow-img" src="img/spinner-arrow.png" alt="arrow" draggable="false">
+					</div>
+					<p>Returns 5x</p>
+				</div>
+			</div>
+		</div>
+		<div class="choose-colour-container">
+			<p class="choose-colour-title">Choose a Colour</p>
+			<div class="choose-colour-btn" data-selected="false">
+				<div class="choose-colour-label"></div>
+				<p class="choose-colour-txt"></p>
+			</div>
+			<div class="choose-colour-btn" data-selected="false">
+				<div class="choose-colour-label"></div>
+				<p class="choose-colour-txt"></p>
+			</div>
+			<div class="choose-colour-btn" data-selected="false">
+				<div class="choose-colour-label"></div>
+				<p class="choose-colour-txt"></p>
+			</div>
+			<div class="choose-colour-btn" data-selected="false">
+				<div class="choose-colour-label"></div>
+				<p class="choose-colour-txt"></p>
+			</div>
+			<div class="choose-colour-btn" data-selected="false">
+				<div class="choose-colour-label"></div>
+				<p class="choose-colour-txt"></p>
+			</div>
+			<div class="choose-colour-btn" data-selected="false">
+				<div class="choose-colour-label"></div>
+				<p class="choose-colour-txt"></p>
+			</div>
+			<div class="choose-colour-btn" data-selected="false">
+				<div class="choose-colour-label"></div>
+				<p class="choose-colour-txt"></p>
+			</div>
+			<div class="choose-colour-btn" data-selected="false">
+				<div class="choose-colour-label"></div>
+				<p class="choose-colour-txt"></p>
+			</div>
+		</div>
+		<div class="modal-submit-container">
+			<p class="modal-submit-btn hover-btn-animation" onclick="submitBet()">Submit</p>
+		</div>
+		<p class="modal-err-msg"></p>
+	</div>
+
+	<main class="wrapper">
+		<div class="bet-container">
+			<p class="bet">Bet: 0</p>
+			<button class="change-bet-btn" style="cursor: pointer;">Change Bet</button>
+		</div>
+		<div class="main-canvas-container">
+			<canvas width="450" height="450" id="main-canvas"></canvas>
+			<div id="main-arrow-spinner-container">
+				<img id="main-arrow-spinner" src="img/spinner-arrow.png" alt="arrow" draggable="false">
+			</div>
+		</div>
+		<div class="spin-btn-container">
+			<p class="spin-btn hover-btn-animation" onclick="spin()">Spin</p>
+		</div>
+		<div class="net-profit-container">
+			<p class="net-profit">Net Profit: 0</p>
+			<button class="cash-out-btn">Cash Out</button>
+		</div>
+	</main>
+
+	<script defer src="main.js"></script>
+</body>
+</html>

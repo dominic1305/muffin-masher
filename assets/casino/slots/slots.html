@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="style.css">
+	<title>Slots</title>
+</head>
+<body>
+
+	<div class="get-tokens">
+		<div class="modal-title">
+			<p>Purchase Tokens</p>
+		</div>
+		<div class="modal-info">
+			<p>1 Token = 5,000 Muffins</p>
+		</div>
+		<div class="modal-form">
+			<input id="modal-input-id" type="number" placeholder="Tokens">
+			<input id="modal-input-btn" type="button" onclick="buyTokens()" value="Submit">
+		</div>
+		<p class="modal-err-msg"></p>
+	</div>
+
+	<div class="cash-out-modal" id="cash-out-modal">
+		<p class="cash-out-modal-info">You still have Tokens. Do you wish to discard them and leave</p>
+		<div class="cash-out-modal-inputs" id="cash-out-modal-inputs">
+			<button class="cash-out-modal-btn" id="cash-out-btn-yes" onclick="cashOut(true)">Yes</button>
+			<button class="cash-out-modal-btn" id="cash-out-btn-no" onclick="closeModal()">No</button>
+		</div>
+	</div>
+
+	<div class="legend-modal-backdrop"></div>
+
+	<div class="legend-modal">
+		<div class="legend-modal-header">
+			<p class="legend-modal-close" onclick="closeLegend()">&#10005;</p>
+			<hr>
+		</div>
+		<div class="legend-modal-body">
+			<div class="legend-modal-tile">
+				<p class="legend-modal-tile-multi-id">3x</p>
+				<img src="img/pixel.png" alt="pixel" draggable="false">
+				<p class="legend-modal-tile-txt">temp</p>
+			</div>
+			<div class="legend-modal-tile">
+				<p class="legend-modal-tile-multi-id">3x</p>
+				<img src="img/banana.png" alt="banana" draggable="false">
+				<p class="legend-modal-tile-txt">temp</p>
+			</div>
+			<div class="legend-modal-tile">
+				<p class="legend-modal-tile-multi-id">2x</p>
+				<img src="img/orange.png" alt="orange" draggable="false">
+				<p class="legend-modal-tile-txt">temp</p>
+			</div>
+			<div class="legend-modal-tile">
+				<p class="legend-modal-tile-multi-id">2x</p>
+				<img src="img/apple.png" alt="apple" draggable="false">
+				<p class="legend-modal-tile-txt">temp</p>
+			</div>
+			<div class="legend-modal-tile">
+				<p class="legend-modal-tile-multi-id">2x</p>
+				<img src="img/watermelon.png" alt="watermelon" draggable="false">
+				<p class="legend-modal-tile-txt">temp</p>
+			</div>
+		</div>
+	</div>
+
+	<main class="wrapper">
+		<div class="tokens-container">
+			<p class="tokens"></p>
+			<button class="display-legend-btn" onclick="displayLegend()">Legend</button>
+		</div>
+		<button class="cash-out-btn" id="cash-out-btn" onclick="cashOut()">Cash Out</button>
+		<div class="machine-container">
+			<img class="machine-img" src="img/slots.png" alt="slots machine img" draggable="false">
+		</div>
+		<div class="net-profit-container">
+			<p class="net-profit-label">Net Profit:</p>
+			<p class="net-profit-txt">0</p>
+		</div>
+		<div class="display-container">
+			<img class="img-slots" src="img/undefined-texture.png" alt="undefined" data-value="undefined">
+			<img class="img-slots" src="img/undefined-texture.png" alt="undefined" data-value="undefined">
+			<img class="img-slots" src="img/undefined-texture.png" alt="undefined" data-value="undefined">
+		</div>
+		<div class="lever-handle"></div>
+		<div class="horz-lever-handle"></div>
+		<div class="lever-container">
+			<img class="lever" src="img/lever.png" alt="lever image" draggable="false"></img>
+		</div>
+	</main>
+
+	<script src="main.js"></script>
+	<script>
+		displayImg(0, Math.floor(Math.random() * 5));
+		displayImg(1, Math.floor(Math.random() * 5));
+		displayImg(2, Math.floor(Math.random() * 5));
+	</script>
+
+</body>
+</html>

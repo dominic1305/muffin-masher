@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+  <head>
+	<!-- Required meta tags -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<!-- Bootstrap CSS -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+	<link rel="stylesheet" href="style.css">
+	<link rel="icon" href="img/muffinPixel.png">
+	<title id="muffinMasherTitle">Muffin Masher</title>
+  </head>
+<body>
+
+	<div class="saveMessageBackground" id="saveMessageBackground">
+		<div class="saveMessage" id="saveMessage">
+			<h3>Saving...</h3>
+		</div>
+	</div>
+
+	<div class="version-number" id="version-id">
+		<h5 style="display: inline-block;" id="version-number-txt">V0.7.6</h5> <!--note: to be updated on new version release-->
+		<div class="version-number-alert" id="version-number-alert-id">
+			<h5>!</h5>
+		</div>
+	</div>
+
+	<div class="background"></div>
+
+	<div class="plusOne"></div>
+
+	<div class="IMG-container">
+		<img class="background-shine" src="img/shine.png" draggable="false">
+		<div class="muffin-IMG-container">
+			<img id="Muffin-IMG-ID" onclick="muffinClick()" onmousedown="borderChangeMuffinIMG()" class="muffinIMG" src="img/muffin.png" draggable="false">
+		</div>
+	</div>
+
+	<dialog id="prestige-modal" class="prestige-modal"> <!--prestige-->
+		<div class="background-stopper" id="background-stopper"></div>
+		<div class="prestige-confirm" id="prestige-confirm">
+			<br>
+			<p style="text-align: center;">Are you sure.<br>You must restart past this point</p>
+			<div class="confirmTrue" id="confirmTrue" onmousedown="borderChange('confirmTrue')">Yes</div>
+			<div class="confirmFalse" id="confirmFalse" onmousedown="borderChange('confirmFalse')">No</div>
+			<br>
+			<div style="text-align: center;">
+				<label for="prestige-checkbox">Do not show again</label>
+				<input type="checkbox" id="prestige-checkbox">
+			</div>
+		</div>
+		<div class="prestige-modal-header" style="height: 15%;">
+			<h5>Prestige</h5>
+			<hr>
+		</div>
+		<div class="prestige-modal-body" style="height: 70%;">
+			<p id="prestigePoints1">You have 0 prestige points</p>
+			<p id="prestigeTimer">You can prestige in 5:00</p>
+			<p class="prestige-info-txt">Prestiging allows you to restart your progress with power ups, making it easier the next time around</p>
+		</div>
+		<div class="prestige-modal-footer" style="height: 15%;">
+			<hr>
+			<div class="prestige-next-modal" id="prestige-next-modal" onmousedown="borderChange('prestige-next-modal')">
+				<p>Prestige</p>
+			</div>
+			<div class="btn-prestige-modal" id="close-prestige" style="position: relative; left: 88%; top: -21%;" onmousedown="borderChange('close-prestige')">
+				<p>Close</p>
+			</div>
+		</div>
+		<div class="prestige-modal-2" id="prestige-modal-2">
+			<div class="prestige-modal-header2" style="height: 50px; border: 1px solid black;">
+				<h5 style="position: relative; left: 5%; top: 50%; transform: translateY(-50%);">Prestige</h5>
+				<p id="prestigePoints2" class="prestige-point-counter">you have 0 prestige points</p>
+				<button class="sellButton-Modal" id="SellButtonModal" onclick="SellButtonModal()">Sell</button>
+			</div>
+			<div class="prestige-modal-body2" style="height: 325px; border: 1px solid black;">
+				<div class="modal-inputs" style="transform: translateY(-50%); position: relative; top: 50%;">
+					<div id="modal-1" class="prestige-modal-producer" onclick="ModalOneBuy()" onmousedown="borderChange('modal-1')">
+						<p>Power Multiplier</p>
+						<p id="pwrMultiplier">1x</p>
+						<p id="pwrCost">2 pts</p>
+						<div class="modal-inputs-one-tooltip">
+							<p>Multiplies the amount of muffins made by producers. NOT clicks</p>
+						</div>
+					</div>
+					<div id="modal-2" class="prestige-modal-producer" onclick="ModalTwoBuy()" onmousedown="borderChange('modal-2')">
+						<p>Head Start</p>
+						<p id="head-start-level">Lvl 0</p>
+						<p id="head-start-cost">6 pts</p>
+						<div class="modal-inputs-two-tooltip">
+							<p>Starts the next game with a certain amount of producers</p>
+						</div>
+					</div>
+					<div id="modal-3" class="prestige-modal-producer" onclick="ModalThreeBuy()" onmousedown="borderChange('modal-3')">
+						<p>Cost Reduction</p>
+						<p id="cost-redux-level">0%</p>
+						<p id="cost-redux-cost">4 pts</p>
+						<div class="modal-inputs-three-tooltip">
+							<p>Reduces the cost of all producers</p>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="prestige-modal-footer2" style="height: 50px; border: 1px solid black;">
+				<div class="btn-prestige-modal" id="close-prestige-2" onmousedown="borderChange('close-prestige-2')">
+					<p>Close</p>
+				</div>
+			</div>
+		</div>
+	</dialog>
+
+	<template id="confrim-modal-template">
+		<div class="confirm-backdrop">
+			<div class="confirm-modal">
+				<div class="confirm-txt-container">
+					<p id="confirm-txt">*temp_onload*</p>
+					<p id="confirm-cancel-modal">&#10005;</p>
+				</div>
+				<div class="confirm-inputs-container"></div>
+			</div>
+		</div>
+	</template>
+
+	<template id="skin-element-template">
+		<div id="temp_onload" class="skin-tile" onmousedown="borderChange(this.id)">
+			<img class="skin-img" src="img/no_texture.png" alt="muffin skin" draggable="false">
+			<p class="skin-txt">temp_onload</p>
+			<div id="skin-lock" class="skin-lock">
+				<img class="skin-lock-IMG" src="img/lock.png" alt="lock" draggable="false">
+				<p id="skin-txt" class="skin-lock-txt">LOCKED</p>
+				<p id="muffin-cost" class="skin-lock-txt">temp_onload</p>
+				<p id="ticket-cost" class="skin-lock-txt">temp_onload</p>
+			</div>
+			<div class="insufficient-funds-container"></div>
+		</div>
+	</template>
+
+	<template id="insufficient-funds-template">
+		<div class="insufficient-funds">
+			<p>Insufficient Funds</p>
+		</div>
+	</template>
+
+	<dialog id="skin-modal" class="skins-modal">
+		<div class="skins-modal-header">
+			<h5 style="display: inline-block;">Skins</h5>
+			<h5 class="tickets-display">tickets<img src="./img/arcade-ticket.png">: <span id="tickets-counter">0</span></h5>
+			<hr>
+		</div>
+		<div class="purchase-options">
+			<p style="margin-bottom: 5px; display: inline-block;">How would you like to pay?</p>
+			<p id="purchase-cancel-btn">&#10005;</p>
+			<div class="inputs">
+				<p id="purchase-muffins-btn" onmousedown="borderChange(this.id)">Muffins</p>
+				<p id="purchase-tickets-btn" onmousedown="borderChange(this.id)">Tickets</p>
+			</div>
+		</div>
+		<div class="skins-modal-body" style="white-space: nowrap; height: 300px; overflow-y: hidden; overflow-x: scroll;"></div>
+		<div class="skins-modal-footer">
+			<hr>
+			<p class="btn-skin-modal" id="close-skins" onmousedown="borderChange(this.id)">Close</p>
+		</div>
+		<div class="purchase-options-backdrop"></div>
+	</dialog>
+
+	<dialog class="casino-modal" id="casino-modal">
+		<div class="casino-modal-header">
+			<div class="casino-modal-title">
+				<p>Casino</p>
+			</div>
+			<div class="casino-game-title">
+				<p id="casino-game-title-txt"></p>
+			</div>
+			<div id="casino-modal-close">&#10005;</div>
+			<hr>
+		</div>
+		<div class="casino-modal-body" style="height: 562.5px;">
+			<iframe scrolling="no" id="casino-iframe" src=""></iframe>
+		</div>
+		<div class="casino-modal-footer">
+			<hr>
+		</div>
+	</dialog>
+
+	<dialog class="save-transfer-modal" id="save-transfer-modal">
+		<div class="save-transfer-modal-header">
+			<p class="save-transfer-modal-title">Save Transfer</p>
+			<p class="save-transfer-modal-close-btn">&#10005;</p>
+			<hr style="margin: 0; margin-top: 38px;">
+		</div>
+		<div class="save-transfer-modal-body" style="height: 80%;">
+			<div class="save-transfer-modal-sect1">
+				<textarea name="save-transfer-modal-import-field" id="save-transfer-modal-import-field" placeholder="Import code"></textarea>
+			</div>
+			<div class="save-transfer-modal-sect2">
+				<textarea name="save-transfer-modal-export-field" id="save-transfer-modal-export-field" placeholder="Export code" readonly></textarea>
+			</div>
+			<p class="save-transfer-modal-submit-btn" onclick="submitSaveTransfer()">Submit</p>
+		</div>
+		<div class="save-transfer-modal-footer">
+			<hr style="margin: 0;">
+			<div class="save-transfer-modal-mode-toggle" data-state="import">
+				<p class="save-transfer-modal-import-btn">Import</p>
+				<p class="save-transfer-modal-export-btn">Export</p>
+			</div>
+		</div>
+	</dialog>
+
+	<template id="producer-element-template">
+		<div class="row">
+			<div onmousedown="borderChange(this.id)" class="producer-btn" id="temp_onload">
+				<div class="row">
+					<div class="col-6">
+						<p id="name">temp_onload</p>
+						<p id="price">temp_onload</p>
+					</div>
+					<div class="col-6">
+						<p id="counter">temp_onload</p>
+						<p id="each">temp_onload</p>
+					</div>
+				</div>
+				<div class="insufficient-funds-container"></div>
+			</div>
+		</div>
+	</template>
+
+	<main class="wrapper">
+		<img id="muffin-IMG-2-ID" onclick="Muffin2Click()" src="img/muffin2.png" class="muffin-IMG-2" draggable="false">
+		<div class="row">
+			<div class="col-4">
+				<div class="nameBackground" id="nameBackground">
+					<div class="nameTXT">
+						<h4 id="nameTXT" onclick="nameEditToggle()">*temp_onload*</h4>
+					</div>
+				</div>
+				<div id="muffin-counters" class="muffin-counters">
+					<div class="top-row">
+						<h1 class="muffin-counters-txt">Muffin Count:&nbsp;</h1>
+						<div class="muffin-counters-txt">
+							<h1 class="muffin-counters-txt" id="mufCount">0</h1>
+						</div>
+					</div>
+					<div class="second-row">
+						<h3 class="muffin-counters-txt" id="MPS-txt">Muffins per second:&nbsp;</h3>
+						<h3 class="muffin-counters-txt" id="MPS">0</h3>
+					</div>
+				</div>
+			</div>
+			<div class="col-4">
+				<div id="save-manual" class="saveBtn" onclick="SaveFile.write(JSON.stringify(gameData))" onmousedown="borderChange('save-manual')">
+					<p style="position: relative; bottom: 15%;">Manual Save</p>
+				</div>
+				<div style="top: 25px" id="transfer-save" class="saveBtn" onmousedown="borderChange('transfer-save')">
+					<p style="position: relative; bottom: 15%;">Transfer Save</p>
+				</div>
+				<div style="top: 50px;" id="save-clear" class="saveBtn" onclick="SaveFile.clear()" onmousedown="borderChange('save-clear')">
+					<p style="position: relative; bottom: 15%;">Delete Save</p>
+				</div>
+				<div style="top: 75px;" id="save-reload" class="saveBtn" onclick="SaveFile.reload()" onmousedown="borderChange('save-reload')">
+					<p style="position: relative; bottom: 15%;">Reload</p>
+				</div>
+				<div class="row">
+					<div class="upgradeClickerButton" id="upgradeClicker" onmousedown="borderChange('upgradeClicker')">
+						<div class="row">
+							<div class="col-6">
+								<p>Upgrade Clicker</p>
+								<p id="price">50</p>
+							</div>
+							<div class="col-6">
+								<p>Increase Efficiency</p>
+								<p style="text-align: right;" id="counter">0</p>
+							</div>
+						</div>
+						<div class="insufficient-funds-container" style="right: 15%; top: 40px;"></div>
+					</div>
+				</div>
+				<div class="row"> <!--Modals-->
+					<div id="open-prestige" class="prestige-modal-btn" onmousedown="borderChange('open-prestige')">Presitge</div>
+				</div>
+				<div class="row">
+					<div id="open-skins" class="skins-modal-button" onmousedown="borderChange('open-skins')">Skins</div>
+					<button id="sellButton" class="sellButton" onclick="sell()">Sell</button>
+				</div>
+				<div class="row">
+					<div id="open-casino" class="casino-modal-btn" onmousedown="borderChange('open-casino')">Casino</div>
+				</div>
+			</div>
+			<div class="col-4" id="producer-panel">
+				<div class="row" style="background-color: black; text-align: center; color: white; height: 25px;"> <!--multiple buy system-->
+					<div class="col-4">
+						<p onclick="multiBuyStateCheck(1)" id="multi-buy-1" style="font-weight: bold; cursor: pointer;">1</p>
+					</div>
+					<div class="col-4">
+						<p onclick="multiBuyStateCheck(10)" id="multi-buy-10" style="cursor: pointer;">10</p>
+					</div>
+					<div class="col-4">
+						<p onclick="multiBuyStateCheck(100)" id="multi-buy-100" style="cursor: pointer;">100</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</main>
+	<script defer src="prestigeSystem.js"></script>
+	<script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+	<script defer src="saveSystem.js"></script>
+	<script src="main.js"></script>
+  </body>
+</html>

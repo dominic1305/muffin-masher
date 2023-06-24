@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="style.css">
+	<title>Black Jack</title>
+</head>
+<body>
+
+	<div class="get-bet"> <!--modal-->
+		<div class="modal-title">
+			<p>Starting Bet</p>
+		</div>
+		<div class="modal-form">
+			<input id="modal-bet-input" type="number" placeholder="Bet">
+			<button onclick="submitBet()">Submit</button>
+		</div>
+		<div class="err-msg-container">
+			<p class="err-msg"></p>
+		</div>
+	</div>
+
+	<div class="background">
+		<img src="img/background.png" alt="background-img">
+	</div>
+
+	<main class="wrapper">
+		<div class="bet-container">
+			<p class="bet"></p>
+			<button class="change-bet-btn" id="change-bet-btn" onclick="changeBet()">Change Bet</button>
+		</div>
+		<div class="winner-container">
+			<p class="winner"></p>
+		</div>
+		<div class="dealer-counter-container">
+			<p class="dealer-counter"></p>
+		</div>
+		<div class="change-bet-modal">
+			<p class="change-bet-modal-info">New Bet</p>
+			<div class="change-bet-modal-inputs">
+				<input id="change-bet-modal-input" type="number" placeholder="Bet">
+				<button id="change-bet-modal-cancel-btn" onclick="cancelBetChange()">Cancel</button>
+				<button id="change-bet-modal-submit-btn" onclick="submitChangeBet()">Submit</button>
+				<p class="change-bet-modal-err-msg">test</p>
+			</div>
+		</div>
+		<div class="net-profit-container">
+			<p class="net-profit-label">Net Profit:&nbsp;</p>
+			<p class="net-profit-txt">0</p>
+		</div>
+		<div class="end-btn-container">
+			<button class="end-btn-cash-out" onclick="cashOut()">Cash Out</button>
+			<button class="end-btn-restart" onclick="restart()">Restart</button>
+		</div>
+		<div class="stay-btn-container">
+			<button class="stay-btn" onclick="stay()">Stay</button>
+		</div>
+		<div class="dealer-hand"></div>
+		<img onclick="addCard()" id="card-back" class="card-back-img" src="img/blueBack.png" alt="backCard" draggable="false">
+		<div class="cards"></div>
+		<div class="countUp-container">
+			<p class="counter">0</p>
+		</div>
+	</main>
+
+	<script src="main.js"></script>
+
+</body>
+</html>

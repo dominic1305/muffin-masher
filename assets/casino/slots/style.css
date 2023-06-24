@@ -1,0 +1,259 @@
+html, body {
+	margin: 0;
+	padding: 0;
+	font-family: sans-serif;
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+.wrapper {
+	visibility: hidden;
+}
+
+.get-tokens {
+	z-index: 5;
+	color: black;
+	width: 90%;
+	height: 90%;
+	border: 1px solid black;
+	border-radius: 15px;
+	background-color: white;
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 50%;
+	left: 50%;
+}
+
+.modal-title {
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 15%;
+	left: 50%;
+}
+
+.modal-info {
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 45%;
+	left: 50%;
+}
+
+.modal-form {
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 50%;
+	left: 50%;
+}
+
+.modal-err-msg {
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 60%;
+	left: 50%;
+}
+
+.tokens-container {
+	float: right;
+}
+
+.lever-container {
+	z-index: 2;
+	transform: translate(-50%, -50%);
+	position: absolute;
+	left: 85%;
+	top: 25%;
+}
+
+.lever {
+	image-rendering: pixelated;
+	z-index: 2;
+	/* background-color: red; */
+	width: 110px;
+	height: 110px;
+	cursor: pointer;
+	transform: translate(-50%, -50%);
+	position: absolute;
+}
+
+.lever-handle {
+	z-index: 2;
+	width: 15px;
+	height: 133px;
+	background-color: rgb(0, 0, 0);
+	transform: translate(-50%, -100%);
+	position: absolute;
+	top: 50%;
+	left: 85%;
+}
+
+.horz-lever-handle {
+	z-index: 0;
+	height: 15px;
+	width: 50px;
+	background-color: rgb(0, 0, 0);
+	transform: translateX(-50%);
+	position: absolute;
+	top: 48.5%;
+	left: 82.36%;
+}
+
+.machine-container {
+	z-index: 1;
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 50%;
+	left: 50%;
+}
+
+.machine-img {
+	pointer-events: none;
+	image-rendering: pixelated;
+	transform: scale(15);
+}
+
+.display-container {
+	width: 260px;
+	height: 90px;
+	z-index: 2;
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 50%;
+	left: 49%;
+}
+
+.img-slots {
+	image-rendering: pixelated;
+	display: inline-block;
+	transform: translate(-50%, -50%) scale(2.35);
+	position: absolute;
+	top: 49%;
+}
+
+.img-slots:nth-child(1) {
+	left: 15.2%;
+}
+
+.img-slots:nth-child(2) {
+	left: 49.8%;
+}
+
+.img-slots:nth-child(3) {
+	left: 84.4%;
+}
+
+.cash-out-btn {
+	visibility: hidden;
+	transform: translate(-50%, -50%);
+	position: absolute;
+	left: 50%;
+	top: 70%;
+}
+
+.cash-out-modal {
+	display: block;
+	visibility: hidden;
+	z-index: 3;
+	height: 100px;
+	width: 200px;
+	background-color: white;
+	border: 1px solid black;
+	border-radius: 25px;
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 17.5%;
+	left: 84%;
+}
+
+.cash-out-modal-btn {
+	border: outset;
+	border-radius: 15px;
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 85%;
+}
+
+.cash-out-modal-btn:nth-child(1) {
+	left: 25%;
+}
+
+.cash-out-modal-btn:nth-child(2) {
+	left: 75%;
+}
+
+.cash-out-modal-info {
+	text-align: center;
+}
+
+.display-legend-btn {
+	display: block;
+	transform: translate(-50%, -50%);
+	position: relative;
+	left: 50%;
+}
+
+.legend-modal {
+	visibility: hidden;
+	border: 1px solid black;
+	border-radius: 15px;
+	z-index: 4;
+	background-color: white;
+	height: 85vh;
+	width: max-content;
+	min-width: 20vw;
+	transform: translate(-100%, -50%);
+	position: absolute;
+	top: 50%;
+	left: 98%;
+}
+
+.legend-modal-backdrop {
+	visibility: hidden;
+	z-index: 3;
+	height: 100vh;
+	width: 100vw;
+	background-color: rgba(0, 0, 0, 0.5);
+	transform: translate(-50%, -50%);
+	position: absolute;
+	left: 50%;
+	top: 50%;
+}
+
+.legend-modal-close {
+	margin: 0;
+	text-align: right;
+	font-size: 25px;
+	cursor: pointer;
+	user-select: none;
+	-webkit-user-select: none;
+	position: relative;
+	right: 10px;
+}
+
+.legend-modal-tile {
+	white-space: nowrap;
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+.legend-modal-tile > p, .legend-modal-tile > img {
+	image-rendering: pixelated;
+	display: inline-block;
+	margin: 0;
+}
+
+.legend-modal-tile > p {
+	transform: translateY(-50%);
+}
+
+.net-profit-container {
+	color: black;
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 25%;
+	left: 50%;
+}
+
+.net-profit-container > p {
+	display: inline-block;
+	margin: 0;
+}

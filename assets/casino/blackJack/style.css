@@ -1,0 +1,175 @@
+html, body {
+	background-color: black;
+	color: white;
+	user-select: none;
+	-webkit-user-select: none;
+	font-family: sans-serif;
+	margin: 0;
+	padding: 0;
+}
+
+.wrapper {
+	visibility: hidden;
+}
+
+.card-img {
+	transform: scale(3);
+	image-rendering: pixelated;
+	position: absolute;
+}
+
+.card-img:hover {
+	transform: scale(3.5);
+	z-index: 5;
+}
+
+.card-back-img {
+	transform: scale(3);
+	image-rendering: pixelated;
+	position: absolute;
+}
+
+#card-back {
+	cursor: pointer;
+	top: 55%;
+	left: 35%;
+}
+
+.counter {
+	font-family: sans-serif;
+	font-size: 25px;
+	transform: translateX(-50%);
+	position: absolute;
+	top: 70%;
+	left: 50%;
+}
+
+.get-bet {
+	background-color: white;
+	color: black;
+	visibility: visible;
+	z-index: 5;
+	width: 80%;
+	height: 80%;
+	border: 1px solid black;
+	border-radius: 15px;
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 50%;
+	left: 50%;
+}
+
+.modal-title {
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 15%;
+	left: 50%;
+}
+
+.modal-form {
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 50%;
+	left: 50%;
+}
+
+.err-msg-container {
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 60%;
+	left: 50%;
+}
+
+.stay-btn-container {
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 40%;
+	left: 50%;
+}
+
+.stay-btn {
+	cursor: pointer;
+	font-size: 15px;
+}
+
+.dealer-counter-container {
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 20%;
+	left: 65%;
+}
+
+.dealer-counter {
+	font-size: 25px;
+}
+
+.net-profit-container {
+	white-space: nowrap;
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 50%;
+	left: 15%;
+}
+
+.net-profit-container > p {
+	white-space: nowrap;
+	display: inline-block;
+}
+
+.winner-container {
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 40%;
+	left: 15%;
+}
+
+.end-btn-container {
+	text-align: center;
+	visibility: hidden;
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 55%;
+	left: 15%;
+}
+
+.end-btn-container > button {
+	cursor: pointer;
+	display: inline-block;
+}
+
+.bet-container {
+	z-index: 2;
+	white-space: nowrap;
+	position: absolute;
+	top: 0%;
+	right: 0%;
+}
+
+#ACE {
+	cursor: pointer;
+}
+
+.change-bet-btn {
+	visibility: hidden;
+}
+
+.change-bet-modal {
+	z-index: 2;
+	color: black;
+	text-align: center;
+	visibility: hidden;
+	background-color: white;
+	height: 150px;
+	width: 200px;
+	border: 1px solid black;
+	border-radius: 15px;
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 17.5%;
+	left: 84%;
+}
+
+#change-bet-modal-submit-btn, #change-bet-modal-cancel-btn {
+	position: relative;
+	top: 5px;
+}

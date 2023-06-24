@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Casino Selector</title>
+	<style>
+
+		html, body {
+			font-family: sans-serif;
+			user-select: none;
+			-webkit-user-select: none;
+		}
+
+		.black-jack-wrapper {
+			cursor: pointer;
+			text-align: center;
+			transform: translate(-50%, -50%);
+			position: absolute;
+			top: 55%;
+			left: 15%;
+		}
+
+		.slots-wrapper {
+			cursor: pointer;
+			text-align: center;
+			transform: translate(-50%, -50%);
+			position: absolute;
+			top: 55%;
+			left: 50%;
+		}
+
+		.spinner-wrapper {
+			cursor: pointer;
+			text-align: center;
+			transform: translate(-50%, -50%);
+			position: absolute;
+			top: 55%;
+			left: 85%;
+		}
+
+		img {
+			width: 192px;
+			height: 192px;
+			image-rendering: pixelated;
+		}
+
+		.title {
+			text-decoration: underline;
+			transform: translate(-50%, -50%);
+			position: absolute;
+			top: 10%;
+			left: 50%;
+		}
+
+		#spinner-arrow {
+			z-index: 2;
+			image-rendering: auto;
+			position: absolute;
+			right: 0%;
+		}
+
+	</style>
+</head>
+<body>
+
+	<h1 class="title">Choose a Game</h1>
+
+	<div class="black-jack-wrapper">
+		<img class="black-jack-img" src="img/blackJack.png" alt="black-jack" draggable="false">
+		<p class="black-jack-txt">Black Jack</p>
+	</div>
+
+	<div class="slots-wrapper">
+		<img class="slots-img" src="img/slots.png" alt="slots" draggable="false">
+		<p class="slots-txt">Slots</p>
+	</div>
+
+	<div class="spinner-wrapper">
+		<canvas width="192" height="192" id="spinner-canvas"></canvas>
+		<img id="spinner-arrow" src="img/spinner-arrow.png" alt="arrow" draggable="false">
+		<p class="spinner-txt">Spinner</p>
+	</div>
+
+	<script>
+
+		document.querySelector('.black-jack-wrapper').addEventListener('click', () => {//change casino game to black jack
+			window.parent.postMessage(JSON.stringify({origin: 'casino', purpose: 'change-SRC', newSRC: './assets/casino/blackJack/blackJack.html', txt: 'Black Jack'}), '*');
+		});
+
+		document.querySelector('.slots-wrapper').addEventListener('click', () => {//change casino game to slots
+			window.parent.postMessage(JSON.stringify({origin: 'casino', purpose: 'change-SRC', newSRC: './assets/casino/slots/slots.html', txt: 'Slots'}), '*');
+		});
+
+		document.querySelector('.spinner-wrapper').addEventListener('click', () => {//change casino game to spinner
+			window.parent.postMessage(JSON.stringify({origin: 'casino', purpose: 'change-SRC', newSRC: './assets/casino/spinner/spinner.html', txt: 'Spinner'}), '*');
+		});
+
+		function getColours(length = 1) {
+			return new Array(length).fill(null).map(() => {
+				return '#' + [Math.floor(Math.random() * 256), Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)].map((bin) => {
+					return enforceByteSize(bin.toString(16), 16);
+				}).join('');
+			});
+		}
+
+		function enforceByteSize(str, register) {//adds zeros to stay within bit size
+			const registerLength = (255).toString(register).length;
+			while (str.length < registerLength) {
+				str = '0' + str;
+			}
+			return String(str);
+		}
+
+		void function draw() {//draw spinner
+			const canvas = document.querySelector('#spinner-canvas');
+			const ctx = canvas.getContext('2d');
+			const arr = getColours([3, 4, 6, 8][Math.floor(Math.random() * 4)]);
+			document.querySelector('#spinner-arrow').style.transform = `rotate(${Math.floor(Math.random() * 360)}deg)`;
+			let currentAngle = 0;
+			for (let i = 0; i < arr.length; i++) {
+				const portionAngle = (1 / arr.length) * 2 * Math.PI;
+				ctx.beginPath();
+				ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2 - (canvas.width / 2 * 0.1), currentAngle, currentAngle + portionAngle);
+				currentAngle += portionAngle;
+				ctx.lineTo(canvas.width / 2, canvas.height / 2);
+				ctx.fillStyle = arr[i];
+				ctx.fill();
+			}
+		}()
+
+	</script>
+
+</body>
+</html>
