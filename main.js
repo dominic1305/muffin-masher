@@ -518,6 +518,7 @@ setInterval(() => {//title updater
 		const confirm = document.querySelector('.confirm-backdrop');
 		confirm.querySelector('#confirm-txt').innerHTML = title;
 		confirm.querySelector('#confirm-cancel-modal').addEventListener('click', () => {//exit without error | cancel
+			//this is a demo
 			document.body.removeChild(confirm);
 			return reject(0);
 		});
