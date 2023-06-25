@@ -517,7 +517,7 @@ setInterval(() => {//title updater
 		document.body.appendChild(document.querySelector('#confrim-modal-template').content.cloneNode(true));
 		const confirm = document.querySelector('.confirm-backdrop');
 		confirm.querySelector('#confirm-txt').innerHTML = title;
-		confirm.querySelector('#confirm-cancel-modal').addEventListener('click', () => {//exit without error | cancel
+		confirm.querySelector('#confirm-cancel-modal').addEventListener('click', () => {//exit without error | cance
 			document.body.removeChild(confirm);
 			return reject(0);
 		});
