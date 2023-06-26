@@ -975,3 +975,13 @@ html, body {
 	padding: 0 5px;
 	text-transform: capitalize;
 }
+
+.arcade-modal {
+	width: 700px;
+	height: 700px;
+	background-color: white;
+}
+
+/* .arcade-modal-body {
+
+} */
