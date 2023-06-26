@@ -182,7 +182,8 @@ function prestigeCall() {//game reset
 	gameData.skins[1].unlockSkin();
 	gameData.prestigeSys.sellState = false;
 	document.getElementById('SellButtonModal').style.backgroundColor = '#FF4A3F';
-	if (gameData.prestigeSys.prestigeCount >= 1) document.querySelector('.casino-modal-btn').style.visibility = 'visible';
+	if (gameData.prestigeSys.prestigeCount >= 1) document.querySelector('#open-casino').style.visibility = 'visible';
+	if (gameData.prestigeSys.prestigeCount >= 2) document.querySelector('#open-arcade').style.visibility = 'visible';
 	gameData.prestigeSys.coolDown = true;
 	gameData.prestigeSys.clock.mins = 5;
 	gameData.prestigeSys.clock.secs = 0;

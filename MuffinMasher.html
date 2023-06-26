@@ -206,15 +206,16 @@
 		</div>
 	</dialog>
 
-	<dialog open class="arcade-modal" id="arcade-modal">
+	<dialog class="arcade-modal" id="arcade-modal">
 		<div class="arcade-modal-header">
-
+			<p class="arcade-modal-title">*temp_onload*</p>
+			<p id="arcade-modal-close-btn" class="arcade-modal-close-btn">&#10005;</p>
 		</div>
 		<div class="arcade-modal-body">
-
+			<iframe scrolling="no" id="arcade-iframe" src=""></iframe>
 		</div>
 		<div class="arcade-modal-footer">
-
+			<p id="arcade-modal-close-btn" class="arcade-modal-close-btn" onmousedown="borderChange('.arcade-modal-close-btn:nth-child(1)')">Close</p>
 		</div>
 	</dialog>
 
@@ -295,6 +296,9 @@
 				</div>
 				<div class="row">
 					<div id="open-casino" class="casino-modal-btn" onmousedown="borderChange('open-casino')">Casino</div>
+				</div>
+				<div class="row">
+					<div id="open-arcade" class="arcade-modal-open-btn" onmousedown="borderChange(this.id)">Arcade</div>
 				</div>
 			</div>
 			<div class="col-4" id="producer-panel">

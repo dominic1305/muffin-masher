@@ -977,11 +977,91 @@ html, body {
 }
 
 .arcade-modal {
-	width: 700px;
-	height: 700px;
+	width: 800px;
+	height: 800px;
 	background-color: white;
+	border-radius: 25px;
+	overflow: hidden;
+	-webkit-user-select: none;
+	user-select: none;
 }
 
-/* .arcade-modal-body {
+.arcade-modal::backdrop {
+	background-color: rgb(0, 0, 0, 0.5);
+}
 
-} */
+.arcade-modal-header {
+	height: 5%;
+	width: 96%;
+	position: absolute;
+}
+
+.arcade-modal-body {
+	height: 90%;
+	width: 100%;
+	margin: 5% 0px;
+	transform: translateX(-50%);
+	position: relative;
+	left: 50%;
+}
+
+.arcade-modal-footer {
+	height: 5%;
+	width: 96%;
+	transform: translateY(-100%);
+	position: absolute;
+}
+
+.arcade-modal-open-btn {
+	background-color: #F2E0B2;
+    width: 50%;
+    height: 50%;
+    border: outset;
+    text-decoration: none;
+    color: black;
+    text-align: center;
+    position: relative;
+    left: 50%;
+    cursor: pointer;
+}
+
+.arcade-modal-header > .arcade-modal-close-btn {
+	font-size: 25px;
+	margin: 0;
+	transform: translateY(-50%);
+	position: absolute;
+	top: 50%;
+	right: 10px;
+	cursor: pointer;
+}
+
+.arcade-modal-footer > .arcade-modal-close-btn {
+	margin: 0;
+	background-color: #F2E0B2;
+	padding: 0px 5px;
+	border: outset;
+	cursor: pointer;
+	transform: translateY(-50%);
+	position: absolute;
+	top: 50%;
+	right: 10px;
+}
+
+.arcade-modal-body > #arcade-iframe {
+	border: 1px solid black;
+	height: 99%;
+	width: 99%;
+	transform: translate(-50%, -50%);
+	position: relative;
+	top: 50%;
+	left: 50%;
+}
+
+.arcade-modal-header > .arcade-modal-title {
+	margin: 0;
+	font-size: 20px;
+	text-decoration: underline;
+	transform: translateX(-50%);
+	position: absolute;
+	left: 50%;
+}

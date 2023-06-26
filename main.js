@@ -11,7 +11,7 @@ class BaseProducer {
 		this.amount = Number(amount);
 		this.cost = Number(cost);
 		this.constCost = Number(constCost);
-		this.id = String(id);
+		this.id = String(id).replaceAll(' ', '-');
 	}
 	get element() {//return producer element
 		return document.getElementById(this.id);
@@ -107,7 +107,7 @@ class Producer extends BaseProducer {
 	display() {//create procedural html element and display values
 		document.querySelector('#producer-panel').appendChild(document.querySelector('#producer-element-template').content.cloneNode(true));
 		[...document.querySelectorAll('.producer-btn')].reverse()[0].id = this.id;
-		this.element.querySelector('#name').innerHTML = this.id;
+		this.element.querySelector('#name').innerHTML = this.id.replaceAll('-', ' ');
 		this.element.querySelector('#price').innerHTML = suffixApplier(this.cost);
 		this.element.querySelector('#each').innerHTML = `${suffixApplier(this.each)}/s Each`;
 		this.element.querySelector('#counter').innerHTML = suffixApplier(this.amount);
@@ -489,8 +489,21 @@ function sell() {//toggle sell state
 	document.getElementById('sellButton').style.backgroundColor = gameData.sellState ? 'lightgreen' : '#FF4A3F';
 }
 
-function borderChange(id) {//changes borders
-	document.getElementById(id).style.border = 'inset';
+function borderChange(target) {//changes borders
+	if (getElement(`#${target}`) != null) {//with id
+		document.querySelector(`#${target}`).style.border = 'inset';
+	} else if (getElement(`.${target}`) != null) {//with class
+		document.querySelector(`.${target}`).style.border = 'inset';
+	} else if (getElement(target) != null) {//with selector
+		document.querySelector(target).style.border = 'inset';
+	}
+	function getElement(selector) {
+		try {
+			return document.querySelector(selector);
+		} catch {
+			return null;
+		}
+	}
 }
 
 setInterval(() => {//interval updater
@@ -775,7 +788,7 @@ closeCasinoModal.addEventListener('click', () => {//close modal
 	casinoModal.close();
 });
 
-window.addEventListener('message', (msg) => {//evaluate messages from casino iframe
+window.addEventListener('message', (msg) => {//evaluate messages from iframes (casino / arcade)
 	const data = JSON.parse(msg.data);
 	if (data.origin == 'casino') {//recieve data from casino
 		switch (data.purpose) {
@@ -806,7 +819,24 @@ window.addEventListener('message', (msg) => {//evaluate messages from casino ifr
 				break;
 			default: throw new Error(`invalid purpose: ${data.purpose}`);
 		}
-	}
+	} else if (data.origin == 'arcade') {//recieve data from arcade
+
+	} else throw new Error(`invalid origin: ${data.origin}`);
+});
+	//arcade system
+const arcadeModal = document.querySelector('#arcade-modal');
+const arcadeIframe = document.querySelector('#arcade-iframe');
+
+document.querySelector('#open-arcade').addEventListener('click', () => {//open arcade modal
+	document.querySelector('#open-arcade').style.border = 'outset';
+	arcadeModal.showModal();
+});
+
+document.querySelectorAll('#arcade-modal-close-btn').forEach((bin) => {//close arcade modal
+	bin.addEventListener('click', () => {
+		document.querySelector('.arcade-modal-footer > .arcade-modal-close-btn').style.border = 'outset';
+		arcadeModal.close();
+	});
 });
 	//save transfer system
 function stringEncrypter(str = '', method = 'encode', register = 16) {//converts ascii to hex and vice versa
