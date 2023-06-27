@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Game Selector</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+	<main class="wrapper">
+		<img id="machine-img" class="machine-img" src="./img/machine-base.png" alt="machine-base" draggable="false">
+		<div class="selections-row">
+			<div class="select-col-1" data-game="./assets/arcade/UNO/UNO.html">
+				<p>UNO</p>
+			</div>
+			<div class="select-col-2" data-game="./assets/arcade/space-invaders/spaceInvaders.html">
+				<p>Space Invaders</p>
+			</div>
+			<div class="select-col-3" data-game="./assets/arcade/ / .html"> <!--TODO: come up with another game idea-->
+				<p>*something else*</p>
+			</div>
+		</div>
+	</main>
+
+	<div id="machine-btn" class="machine-btn-1" data-selector="1"></div>
+	<div id="machine-btn" class="machine-btn-2" data-selector="2"></div>
+	<div id="machine-btn" class="machine-btn-3" data-selector="3"></div>
+
+	<script src="main.js"></script>
+</body>
+</html>

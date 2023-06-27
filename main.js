@@ -820,7 +820,13 @@ window.addEventListener('message', (msg) => {//evaluate messages from iframes (c
 			default: throw new Error(`invalid purpose: ${data.purpose}`);
 		}
 	} else if (data.origin == 'arcade') {//recieve data from arcade
-
+		switch (data.purpose) {
+			case 'change-SRC': //change arcade iframe source file address
+				arcadeIframe.src = data.newSRC;
+				arcadeModal.querySelector('.arcade-modal-title').innerHTML = String(data.newSRC).split('/')[3].replace('-', ' ');
+				break;
+			default: throw new Error(`invalid purpose: ${data.purpose}`);
+		}
 	} else throw new Error(`invalid origin: ${data.origin}`);
 });
 	//arcade system
@@ -830,10 +836,12 @@ const arcadeIframe = document.querySelector('#arcade-iframe');
 document.querySelector('#open-arcade').addEventListener('click', () => {//open arcade modal
 	document.querySelector('#open-arcade').style.border = 'outset';
 	arcadeModal.showModal();
+	arcadeIframe.src = './assets/arcade/game-selector/gameSelector.html';
 });
 
 document.querySelectorAll('#arcade-modal-close-btn').forEach((bin) => {//close arcade modal
 	bin.addEventListener('click', () => {
+		arcadeModal.querySelector('.arcade-modal-title').innerHTML = 'Arcade';
 		document.querySelector('.arcade-modal-footer > .arcade-modal-close-btn').style.border = 'outset';
 		arcadeModal.close();
 	});
