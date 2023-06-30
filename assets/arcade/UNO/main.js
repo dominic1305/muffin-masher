@@ -77,6 +77,9 @@ const cards = Object.freeze({
 	],
 });
 
+let drawPile = createDrawPile();
+const userHand = [];
+
 function createDrawPile() {//generate draw pile
 	const arr = [];
 	for (let i1 = 0; i1 < Object.keys(cards).length; i1++) {//enter first layer
@@ -97,6 +100,40 @@ function getCardPosXArr(number = 1, spacing = 3) {//returns card position array
 	}
 	return arr;
 }
+
+function drawCard() {//pull random card from draw pile
+	if (drawPile.length <= 0) drawPile = createDrawPile();
+	const cardSelected = drawPile[Math.floor(Math.random() * drawPile.length)];
+	drawPile[drawPile.indexOf(cardSelected)] = null;
+	drawPile = drawPile.filter(bin => bin != null);
+	return cardSelected;
+}
+
+function drawCardToUser(drawTimes = 1) {//draw card to users hand
+	for (let i = 0; i < drawTimes; i++) {
+		if (Number(document.querySelector('.user-hand-counter').innerHTML) >= 124) throw new Error(`too many cards`);
+		const card = drawCard();
+		userHand.push(card);
+		userHand.sort((a, b) => (a.colour > b.colour) ? 1 : -1);
+		const CardImg = document.createElement('img');
+		CardImg.className = 'user-card';
+		CardImg.draggable = false;
+		document.querySelector('#user-hand').appendChild(CardImg);
+		for (let i1 = 0; i1 < userHand.length; i1 += 31) {//get hand chunk
+			const chunk = userHand.slice(i1, i1 + 31);
+			const posArr = getCardPosXArr(chunk.length, [9, 6, 3][Math.ceil(chunk.length / 8) - 1]);
+			[...document.querySelectorAll('#user-hand > .user-card')].slice(i1, i1 + 31).forEach((bin, i2) => {//card element chunk loop
+				bin.dataset.colour = chunk[i2].colour;
+				bin.dataset.value = chunk[i2].val;
+				bin.dataset.type = chunk[i2].type;
+				bin.src = chunk[i2].img;
+				bin.style.left = `${posArr[i2]}%`;
+				bin.style.top = `${Math.ceil(i1 / 31) * 30}%`;
+			});
+		}
+		document.querySelector('.user-hand-counter').innerHTML = userHand.length;
+	}
+};
 
 /* hand sorter demo (jsfiddle)
 	let a = [
@@ -122,6 +159,9 @@ function getCardPosXArr(number = 1, spacing = 3) {//returns card position array
 	}).sort((a, b) => {//sort colour
 		return (a.colour > b.colour) ? 1 : -1;
 	});
+
+	//inline version
+	a = a.sort((a, b) => b.val - a.val).sort((a, b) => (a.colour > b.colour) ? 1 : -1);
 
 	console.log(a);
 */

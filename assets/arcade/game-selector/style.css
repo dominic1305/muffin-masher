@@ -25,12 +25,29 @@ html, body {
 
 .selections-row > div {
 	display: inline-block;
-	height: 100px;
-	width: 100px;
+	height: max-content;
+	min-height: 125px;
+	min-width: 125px;
 	white-space: nowrap;
-	transform: translate(-50%, -50%);
+	transform: translate(-50%, -85%);
+	transition: 250ms;
+	border-radius: 10%;
 	position: absolute;
 	cursor: pointer;
+}
+
+.selections-row > div > p {
+	margin: 0;
+	text-align: center;
+}
+
+.selections-row > div > img {
+	image-rendering: pixelated;
+	width: 100px;
+	height: 100px;
+	transform: translateX(-50%);
+	position: relative;
+	left: 50%;
 }
 
 .selections-row > div:nth-child(1) {

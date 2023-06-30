@@ -1,0 +1,53 @@
+html, body {
+	margin: 0;
+	padding: 0;
+	-webkit-user-select: none;
+	user-select: none;
+	font-family: sans-serif;
+}
+
+.user-hand {
+	border: 2px dashed green;
+	height: 100px;
+	width: 100vw;
+	transform: translate(-50%, -40%);
+	position: absolute;
+	left: 50%;
+	top: 75%;
+}
+
+.user-hand > .user-card {
+	height: 100px;
+	image-rendering: pixelated;
+	transform: translateX(-50%);
+	transition: 500ms;
+	cursor: pointer;
+	position: absolute;
+}
+
+.user-hand > .user-card:hover {
+	z-index: 2;
+	transition: 100ms;
+	transform: translateX(-50%) scale(1.2);
+}
+
+#draw-card {
+	image-rendering: pixelated;
+	height: 100px;
+	transform: translate(-50%, -50%);
+	cursor: pointer;
+	position: absolute;
+	left: 90%;
+	top: 50%;
+}
+
+.user-hand-counter {
+	border-radius: 25%;
+	font-weight: bold;
+	padding: 0 3px;
+	border: 2px solid black;
+	transform: translateY(-80%);
+	position: absolute;
+	right: 10px;
+	top: 85%;
+}
