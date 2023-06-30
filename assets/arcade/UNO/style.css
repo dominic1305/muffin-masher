@@ -46,8 +46,8 @@ html, body {
 	font-weight: bold;
 	padding: 0 3px;
 	border: 2px solid black;
-	transform: translateY(-80%);
+	transform: translateY(90%);
 	position: absolute;
-	right: 10px;
-	top: 85%;
+	right: 5px;
+	top: 60%;
 }

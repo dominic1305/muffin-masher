@@ -134,34 +134,3 @@ function drawCardToUser(drawTimes = 1) {//draw card to users hand
 		document.querySelector('.user-hand-counter').innerHTML = userHand.length;
 	}
 };
-
-/* hand sorter demo (jsfiddle)
-	let a = [
-		{val: 5, colour: 'red'},
-		{val: 4, colour: 'red'},
-		{val: 3, colour: 'red'},
-		{val: 2, colour: 'red'},
-		{val: 1, colour: 'red'},
-		{val: 5, colour: 'green'},
-		{val: 3, colour: 'green'},
-		{val: 1, colour: 'green'},
-		{val: 2, colour: 'green'},
-		{val: 4, colour: 'green'},
-		{val: 1, colour: 'blue'},
-		{val: 2, colour: 'blue'},
-		{val: 3, colour: 'blue'},
-		{val: 4, colour: 'blue'},
-		{val: 5, colour: 'blue'},
-	];
-
-	a = a.sort((a, b) => {//sort number
-		return b.val - a.val;
-	}).sort((a, b) => {//sort colour
-		return (a.colour > b.colour) ? 1 : -1;
-	});
-
-	//inline version
-	a = a.sort((a, b) => b.val - a.val).sort((a, b) => (a.colour > b.colour) ? 1 : -1);
-
-	console.log(a);
-*/
