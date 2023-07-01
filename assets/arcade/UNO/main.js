@@ -102,6 +102,16 @@ function getCardPosXArr(number = 1, spacing = 3) {//returns card position array
 	return arr;
 }
 
+function cardSearch(handArr, val, type, colour) {//find card in array
+	return handArr.filter((bin) => {//filter colour
+		return bin.colour == colour;
+	}).filter((bin) => {//filter value
+		return bin.val == val;
+	}).filter((bin) => {//filter type
+		return bin.type == type;
+	})[0];
+}
+
 function drawCard() {//pull random card from draw pile
 	if (drawPile.length <= 0) drawPile = createDrawPile();
 	const cardSelected = drawPile[Math.floor(Math.random() * drawPile.length)];
