@@ -133,4 +133,19 @@ function drawCardToUser(drawTimes = 1) {//draw card to users hand
 		}
 		document.querySelector('.user-hand-counter').innerHTML = userHand.length;
 	}
-};
+}
+
+function updateHand(handElement, handArr, up = true) {
+	for (let i1 = 0; i1 < handArr.length; i1 += 31) {
+		const chunk = handArr.slice(i1, i1 + 31);
+		const posArr = getCardPosXArr(chunk.length, [9, 6, 3][Math.ceil(chunk.length / 8) - 1]);
+		[...handElement.querySelectorAll('img')].slice(i1, i1 + 31).forEach((bin, i2) => {
+			bin.dataset.colour = chunk[i2].colour;
+			bin.dataset.value = chunk[i2].val;
+			bin.dataset.type = chunk[i2].type;
+			bin.src = chunk[i2].img;
+			bin.style.left = `${posArr[i2]}%`;
+			bin.style.top = `${(up) ? '' : '-'}${Math.ceil(i1 / 31) * 30}%`;
+		});
+	}
+}
