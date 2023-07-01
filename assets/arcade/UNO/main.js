@@ -78,7 +78,8 @@ const cards = Object.freeze({
 });
 
 let drawPile = createDrawPile();
-const userHand = [];
+let userHand = [];
+let AiHand = [];
 
 function createDrawPile() {//generate draw pile
 	const arr = [];
@@ -109,33 +110,49 @@ function drawCard() {//pull random card from draw pile
 	return cardSelected;
 }
 
-function drawCardToUser(drawTimes = 1) {//draw card to users hand
+function addCardToUser(drawTimes = 1) {//draw card to users hand
 	for (let i = 0; i < drawTimes; i++) {
-		if (Number(document.querySelector('.user-hand-counter').innerHTML) >= 124) throw new Error(`too many cards`);
+		if (Number(document.querySelector('.user-hand-counter').innerHTML) >= 124) throw new Error('too many cards');
 		const card = drawCard();
 		userHand.push(card);
-		userHand.sort((a, b) => (a.colour > b.colour) ? 1 : -1);
-		const CardImg = document.createElement('img');
-		CardImg.className = 'user-card';
-		CardImg.draggable = false;
-		document.querySelector('#user-hand').appendChild(CardImg);
-		for (let i1 = 0; i1 < userHand.length; i1 += 31) {//get hand chunk
-			const chunk = userHand.slice(i1, i1 + 31);
-			const posArr = getCardPosXArr(chunk.length, [9, 6, 3][Math.ceil(chunk.length / 8) - 1]);
-			[...document.querySelectorAll('#user-hand > .user-card')].slice(i1, i1 + 31).forEach((bin, i2) => {//card element chunk loop
-				bin.dataset.colour = chunk[i2].colour;
-				bin.dataset.value = chunk[i2].val;
-				bin.dataset.type = chunk[i2].type;
-				bin.src = chunk[i2].img;
-				bin.style.left = `${posArr[i2]}%`;
-				bin.style.top = `${Math.ceil(i1 / 31) * 30}%`;
-			});
-		}
+		const cardImg = document.createElement('img');
+		cardImg.className = 'user-card';
+		cardImg.draggable = false;
+		cardImg.addEventListener('click', (e) => {//add interactivity
+			userHand[userHand.indexOf(card)] = null;
+			userHand = userHand.filter(bin => bin != null);
+			document.querySelector('#user-hand').removeChild(e.target);
+			document.querySelector('.user-hand-counter').innerHTML = userHand.length;
+			updateHand(document.querySelector('#user-hand'), userHand, false, false);
+		}, {once: true});
+		document.querySelector('#user-hand').appendChild(cardImg);
 		document.querySelector('.user-hand-counter').innerHTML = userHand.length;
 	}
+	updateHand(document.querySelector('#user-hand'), userHand, false);
 }
 
-function updateHand(handElement, handArr, up = true) {
+function addCardToAi(drawTimes = 1) {//draw card to Ai hand
+	for (let i = 0; i < drawTimes; i++) {
+		if (Number(document.querySelector('.Ai-hand-counter').innerHTML) >= 124) throw new Error('too many cards');
+		const card = drawCard();
+		AiHand.push(card);
+		const cardImg = document.createElement('img');
+		cardImg.className = 'Ai-card';
+		cardImg.draggable = false;
+		cardImg.addEventListener('click', (e) => {//add interactivity
+			AiHand[AiHand.indexOf(card)] = null;
+			AiHand = AiHand.filter(bin => bin != null);
+			document.querySelector('#Ai-hand').removeChild(e.target);
+			document.querySelector('.Ai-hand-counter').innerHTML = AiHand.length;
+			updateHand(document.querySelector('#Ai-hand'), AiHand, true, true);
+		}, {once: true});
+		document.querySelector('#Ai-hand').appendChild(cardImg);
+		document.querySelector('.Ai-hand-counter').innerHTML = AiHand.length;
+	}
+	updateHand(document.querySelector('#Ai-hand'), AiHand, true, true);
+}
+
+function updateHand(handElement, handArr, up = false, imgOverwrite = false) {//display cards to hand (user | Ai)
 	for (let i1 = 0; i1 < handArr.length; i1 += 31) {
 		const chunk = handArr.slice(i1, i1 + 31);
 		const posArr = getCardPosXArr(chunk.length, [9, 6, 3][Math.ceil(chunk.length / 8) - 1]);
@@ -143,9 +160,9 @@ function updateHand(handElement, handArr, up = true) {
 			bin.dataset.colour = chunk[i2].colour;
 			bin.dataset.value = chunk[i2].val;
 			bin.dataset.type = chunk[i2].type;
-			bin.src = chunk[i2].img;
+			bin.src = (!imgOverwrite) ? chunk[i2].img : './img/card-back.png';
 			bin.style.left = `${posArr[i2]}%`;
-			bin.style.top = `${(up) ? '' : '-'}${Math.ceil(i1 / 31) * 30}%`;
+			bin.style.top = `${(!up) ? '' : '-'}${Math.ceil(i1 / 31) * 30}%`;
 		});
 	}
 }

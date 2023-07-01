@@ -51,3 +51,33 @@ html, body {
 	right: 5px;
 	top: 60%;
 }
+
+.Ai-hand {
+	border: 2px dashed green;
+	height: 100px;
+	width: 100vw;
+	transform: translate(-50%, -40%);
+	position: absolute;
+	left: 50%;
+	top: 25%;
+}
+
+.Ai-hand-counter {
+	border-radius: 25%;
+	font-weight: bold;
+	padding: 0 3px;
+	border: 2px solid black;
+	transform: translateY(70%);
+	position: absolute;
+	right: 5px;
+	top: 30%;
+}
+
+.Ai-hand > .Ai-card {
+	height: 100px;
+	image-rendering: pixelated;
+	transform: translateX(-50%);
+	transition: 500ms;
+	cursor: pointer;
+	position: absolute;
+}
