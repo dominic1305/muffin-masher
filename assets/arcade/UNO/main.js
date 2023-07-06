@@ -7,6 +7,17 @@ class Card {
 		this.colour = colour;
 		this.img = img;
 		this.quantity = quantity;
+		return Object.freeze(this);
+	}
+	get isValid() {//checks if this card is legal to play
+		if (document.querySelector('.QTE') != null && gameRules.stackOn) {//stack on QTE is active
+			return String(this.val).includes('draw');
+		} else {
+			if (this.colour == 'black') return true; //is wild
+			if (currentCard.colour == this.colour) return true; //has same colour
+			if (currentCard.val == this.val) return true; //has same value
+			return false;
+		}
 	}
 }
 
@@ -80,6 +91,26 @@ const cards = Object.freeze({
 let drawPile = createDrawPile();
 let userHand = [];
 let AiHand = [];
+const gameRules = {
+	drawToPlay: false,
+	switchHands: false,
+	stackOn: false,
+};
+let currentCard = new Card();
+let playerTurn = true;
+
+document.querySelector('.game-start-btn').addEventListener('click', () => {//game start
+	document.querySelectorAll('.modal-inputs > p > input').forEach((bin) => {//set rules
+		gameRules[bin.id] = bin.checked;
+	});
+	Object.freeze(gameRules);
+	addCardToAi(7);
+	addCardToUser(7);
+	currentCard = drawCard();
+	document.querySelector('.current-card').src = currentCard.img;
+	document.querySelector('.wrapper').style.visibility = 'visible';
+	document.querySelector('.modal').style.display = 'none';
+});
 
 function createDrawPile() {//generate draw pile
 	const arr = [];
@@ -102,16 +133,6 @@ function getCardPosXArr(number = 1, spacing = 3) {//returns card position array
 	return arr;
 }
 
-function cardSearch(handArr, val, type, colour) {//find card in array
-	return handArr.filter((bin) => {//filter colour
-		return bin.colour == colour;
-	}).filter((bin) => {//filter value
-		return bin.val == val;
-	}).filter((bin) => {//filter type
-		return bin.type == type;
-	})[0];
-}
-
 function drawCard() {//pull random card from draw pile
 	if (drawPile.length <= 0) drawPile = createDrawPile();
 	const cardSelected = drawPile[Math.floor(Math.random() * drawPile.length)];
@@ -120,7 +141,8 @@ function drawCard() {//pull random card from draw pile
 	return cardSelected;
 }
 
-function addCardToUser(drawTimes = 1) {//draw card to users hand
+function addCardToUser(drawTimes = 1, callBack = false) {//draw card to users hand
+	if (!playerTurn) return;
 	for (let i = 0; i < drawTimes; i++) {
 		if (Number(document.querySelector('.user-hand-counter').innerHTML) >= 124) throw new Error('too many cards');
 		const card = drawCard();
@@ -129,16 +151,21 @@ function addCardToUser(drawTimes = 1) {//draw card to users hand
 		cardImg.className = 'user-card';
 		cardImg.draggable = false;
 		cardImg.addEventListener('click', (e) => {//add interactivity
+			if (!card.isValid || !playerTurn) return;
+			currentCard = card;
+			document.querySelector('.current-card').src = currentCard.img;
 			userHand[userHand.indexOf(card)] = null;
 			userHand = userHand.filter(bin => bin != null);
 			document.querySelector('#user-hand').removeChild(e.target);
 			document.querySelector('.user-hand-counter').innerHTML = userHand.length;
 			updateHand(document.querySelector('#user-hand'), userHand, false, false);
-		}, {once: true});
+			moveAssess(false, 'played card');
+		});
 		document.querySelector('#user-hand').appendChild(cardImg);
 		document.querySelector('.user-hand-counter').innerHTML = userHand.length;
 	}
-	updateHand(document.querySelector('#user-hand'), userHand, false);
+	updateHand(document.querySelector('#user-hand'), userHand, false, false);
+	if (callBack) moveAssess(false, 'drew card');
 }
 
 function addCardToAi(drawTimes = 1) {//draw card to Ai hand
@@ -149,13 +176,6 @@ function addCardToAi(drawTimes = 1) {//draw card to Ai hand
 		const cardImg = document.createElement('img');
 		cardImg.className = 'Ai-card';
 		cardImg.draggable = false;
-		cardImg.addEventListener('click', (e) => {//add interactivity
-			AiHand[AiHand.indexOf(card)] = null;
-			AiHand = AiHand.filter(bin => bin != null);
-			document.querySelector('#Ai-hand').removeChild(e.target);
-			document.querySelector('.Ai-hand-counter').innerHTML = AiHand.length;
-			updateHand(document.querySelector('#Ai-hand'), AiHand, true, true);
-		}, {once: true});
 		document.querySelector('#Ai-hand').appendChild(cardImg);
 		document.querySelector('.Ai-hand-counter').innerHTML = AiHand.length;
 	}
@@ -175,4 +195,113 @@ function updateHand(handElement, handArr, up = false, imgOverwrite = false) {//d
 			bin.style.top = `${(!up) ? '' : '-'}${Math.ceil(i1 / 31) * 30}%`;
 		});
 	}
+}
+
+async function moveAssess(Ai, move) {//completes global actions after a move has been done
+	if (move == 'played card') document.querySelector('.current-card').style.border = ''; //wild changed
+	if (!Ai) {//player makes a move
+		if ((currentCard.val == 'reverse' || currentCard.val == 'skip') && move == 'played card') return; //return to previous players turn
+		if (currentCard.colour == 'black' && currentCard.type == 'special' && move == 'played card') {//player used a wild
+			await runWildPicker().then((response) => {
+				currentCard = new Card(currentCard.val, currentCard.type, response, currentCard.img, currentCard.quantity);
+				switch (response) {//change border
+					case 'red':	document.querySelector('.current-card').style.border = '5px solid rgb(254, 0, 0)'; break;
+					case 'green': document.querySelector('.current-card').style.border = '5px solid rgb(1, 186, 3)'; break;
+					case 'blue': document.querySelector('.current-card').style.border = '5px solid rgb(3, 90, 226)'; break;
+					case 'yellow': document.querySelector('.current-card').style.border = '5px solid rgb(255, 202, 2)'; break;
+				}
+			}).catch(err => console.error(err));
+		}
+		if (String(currentCard.val).includes('draw') && move == 'played card') {//player used a draw card
+			if (!gameRules.stackOn) return addCardToAi((currentCard.val == 'wild-draw') ? 4 : 2);
+		}
+		if (move == 'drew card' && gameRules.drawToPlay) {//player picked up a card with draw to play enabled
+			while (userHand.filter(bin => bin.isValid).length == 0) addCardToUser(1, false); //keep drawing cards
+		}
+		setTimeout(() => {playAiMove();}, Math.floor(Math.random() * (500 - 250) + 250)); //play Ai turn
+	} else {//Ai makes a move
+		if (currentCard.colour == 'black' && currentCard.type == 'special' && move == 'played card') {//Ai used a wild
+			const colourToPlay = AiHand.map(bin => bin.colour).filter(bin => bin != 'black').mode();
+			currentCard = new Card(currentCard.val, currentCard.type, colourToPlay, currentCard.img, currentCard.quantity);
+			switch (colourToPlay) {//change border
+				case 'red':	document.querySelector('.current-card').style.border = '5px solid rgb(254, 0, 0)'; break;
+				case 'green': document.querySelector('.current-card').style.border = '5px solid rgb(1, 186, 3)'; break;
+				case 'blue': document.querySelector('.current-card').style.border = '5px solid rgb(3, 90, 226)'; break;
+				case 'yellow': document.querySelector('.current-card').style.border = '5px solid rgb(255, 202, 2)'; break;
+			}
+		}
+		if (String(currentCard.val).includes('draw') && move == 'played card') {//Ai used a draw card
+			if (!gameRules.stackOn) {
+				addCardToUser((currentCard.val == 'wild-draw') ? 4 : 2, false);
+				return setTimeout(() => {playAiMove();}, Math.floor(Math.random() * (500 - 250) + 250)); //play Ai turn
+			}
+		}
+		if ((currentCard.val == 'reverse' || currentCard.val == 'skip') && move == 'played card') {//return to previous players turn
+			return setTimeout(() => {playAiMove();}, Math.floor(Math.random() * (500 - 250) + 250)); //play Ai turn
+		}
+	}
+	playerTurn = !playerTurn;
+	document.querySelector('.turn-displayer').style.top = (playerTurn) ? '65%' : '34.5%';
+}
+
+function playAiMove() {//makes the Ai take their turn
+	if (playerTurn) throw new Error('not Ai\'s turn');
+	if (AiHand.filter(bin => bin.isValid).length != 0) {//card available to play
+		const validCards = AiHand.filter(bin => bin.isValid);
+		let cardToPLay = validCards.filter(bin => bin.colour == validCards.map(bin => bin.colour).filter(bin => bin != 'black').mode())[0];
+		if (cardToPLay == null) cardToPLay = validCards.filter(bin => bin.colour == 'black')[0]; //use wild
+		currentCard = cardToPLay;
+		document.querySelector('.current-card').src = currentCard.img;
+		AiHand[AiHand.indexOf(cardToPLay)] = null;
+		AiHand = AiHand.filter(bin => bin != null);
+		document.querySelector('#Ai-hand').removeChild(document.querySelector('#Ai-hand > img'));
+		document.querySelector('.Ai-hand-counter').innerHTML = AiHand.length;
+		updateHand(document.querySelector('#Ai-hand'), AiHand, true, true);
+		moveAssess(true, 'played card');
+	} else {//no card to play | pick up
+		if (!gameRules.drawToPlay) addCardToAi(1);
+		else while (AiHand.filter(bin => bin.isValid).length == 0) addCardToAi(1);
+		moveAssess(true, 'drew card');
+	}
+}
+
+Array.prototype.mode = function () {
+    return this.sort((a, b) => this.filter(v => v == a).length - this.filter(v => v == b).length).pop();
+}
+
+function runQTE(title = 'demo', expireTime = 1000) {//execute QTE event
+	return new Promise((resolve, reject) => {
+		if (document.body.querySelector('.QTE') != null) return reject('too many instances');
+		document.body.appendChild(document.querySelector('#QTE-template').content.cloneNode(true));
+		document.querySelector('.QTE-txt').innerHTML = title;
+		let counter = 0;
+		const initLength = userHand.length;
+		const interval = setInterval(() => {//progress animation
+			document.querySelector('.QTE-progress-bar').style.width = `${counter}%`;
+			counter++;
+			if (counter >= 100 || initLength != userHand.length) {//animation is done | user countered
+				document.body.removeChild(document.querySelector('.QTE'));
+				clearInterval(interval);
+				return resolve('expire complete');
+			}
+		}, expireTime / 100); //ms per 1%
+		document.querySelector('.QTE').addEventListener('click', () => {//decline QTE
+			document.body.removeChild(document.querySelector('.QTE'));
+			clearInterval(interval);
+			return reject(0);
+		});
+	});
+}
+
+function runWildPicker() {//execute wild picker event
+	return new Promise((resolve, reject) => {
+		if (document.body.querySelector('.wild-picker-backdrop') != null) return reject('too many instances');
+		document.body.appendChild(document.querySelector('#wild-picker-template').content.cloneNode(true));
+		document.querySelectorAll('.wild-picker-colour').forEach((bin) => {//colour selector interactivity
+			bin.addEventListener('click', () => {
+				document.body.removeChild(document.querySelector('.wild-picker-backdrop'));
+				return resolve(bin.dataset.colour);
+			});
+		});
+	});
 }

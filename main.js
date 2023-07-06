@@ -524,7 +524,7 @@ setInterval(() => {//title updater
 	}
 }, 5000);
 
-/**@param inputs object with "name" string and any return "val"*/ function getConfirmModalResponse(title, ...inputs) {
+function getConfirmModalResponse(title, ...inputs) {//inputs - {name: string, val: any}[]
 	return new Promise((resolve, reject) => {
 		if (document.querySelector('.confirm-modal') != null) return reject('two or more instances cannot coexist');
 		document.body.appendChild(document.querySelector('#confrim-modal-template').content.cloneNode(true));

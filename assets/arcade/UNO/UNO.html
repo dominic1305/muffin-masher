@@ -9,12 +9,47 @@
 </head>
 <body>
 
+	<div class="modal">
+		<p class="modal-title">Game Rules</p>
+		<div class="modal-inputs">
+			<p>Draw to Play <input type="checkbox" id="drawToPlay"></p>
+			<p>Switch Hands on 0 <input type="checkbox" id="switchHands"></p>
+			<p>Stack Draw Cards <input type="checkbox" id="stackOn"></p>
+		</div>
+		<p class="game-start-btn">Start Game</p>
+	</div>
+
+	<template id="QTE-template">
+		<div class="QTE">
+			<p 	class="QTE-txt">*temp_onload*</p>
+			<div class="QTE-progress-bar-container">
+				<span class="QTE-progress-bar"></span>
+			</div>
+		</div>
+	</template>
+
+	<template id="wild-picker-template">
+		<div class="wild-picker-backdrop">
+			<div class="wild-picker">
+				<div class="wild-picker-inputs">
+					<div class="wild-picker-colour" data-colour="red"></div>
+					<div class="wild-picker-colour" data-colour="green"></div>
+					<br>
+					<div class="wild-picker-colour" data-colour="blue"></div>
+					<div class="wild-picker-colour" data-colour="yellow"></div>
+				</div>
+			</div>
+		</div>
+	</template>
+
 	<main class="wrapper">
-		<img id="draw-card" src="./img/card-back.png" alt="draw card" draggable="false" onclick="addCardToUser(1)">
+		<img id="draw-card" src="./img/card-back.png" alt="draw card" draggable="false" onclick="addCardToUser(1, true)">
 		<div id="user-hand" class="user-hand"></div>
 		<p class="user-hand-counter">0</p>
 		<div id="Ai-hand" class="Ai-hand"></div>
 		<p class="Ai-hand-counter">0</p>
+		<img class="current-card" src="" alt="current card" draggable="false">
+		<p class="turn-displayer">Your Turn</p>
 	</main>
 
 	<script defer src="./main.js"></script>
