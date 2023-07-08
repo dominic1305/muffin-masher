@@ -142,7 +142,7 @@ function drawCard() {//pull random card from draw pile
 }
 
 function addCardToUser(drawTimes = 1, callBack = false) {//draw card to users hand
-	if (!playerTurn) return;
+	if (!playerTurn && callBack) return;
 	for (let i = 0; i < drawTimes; i++) {
 		if (Number(document.querySelector('.user-hand-counter').innerHTML) >= 124) throw new Error('too many cards');
 		const card = drawCard();
@@ -200,6 +200,7 @@ function updateHand(handElement, handArr, up = false, imgOverwrite = false) {//d
 async function moveAssess(Ai, move) {//completes global actions after a move has been done
 	if (move == 'played card') document.querySelector('.current-card').style.border = ''; //wild changed
 	if (!Ai) {//player makes a move
+		if (gameRules.switchHands && currentCard.val == 0 && move == 'played card') switchHands();
 		if ((currentCard.val == 'reverse' || currentCard.val == 'skip') && move == 'played card') return; //return to previous players turn
 		if (currentCard.colour == 'black' && currentCard.type == 'special' && move == 'played card') {//player used a wild
 			await runWildPicker().then((response) => {
@@ -218,8 +219,9 @@ async function moveAssess(Ai, move) {//completes global actions after a move has
 		if (move == 'drew card' && gameRules.drawToPlay) {//player picked up a card with draw to play enabled
 			while (userHand.filter(bin => bin.isValid).length == 0) addCardToUser(1, false); //keep drawing cards
 		}
-		setTimeout(() => {playAiMove();}, Math.floor(Math.random() * (500 - 250) + 250)); //play Ai turn
+		setTimeout(() => {playAiMove();}, Math.floor(Math.random() * (500 - 350) + 350));
 	} else {//Ai makes a move
+		if (gameRules.switchHands && currentCard.val == 0 && move == 'played card') switchHands();
 		if (currentCard.colour == 'black' && currentCard.type == 'special' && move == 'played card') {//Ai used a wild
 			const colourToPlay = AiHand.map(bin => bin.colour).filter(bin => bin != 'black').mode();
 			currentCard = new Card(currentCard.val, currentCard.type, colourToPlay, currentCard.img, currentCard.quantity);
@@ -233,11 +235,11 @@ async function moveAssess(Ai, move) {//completes global actions after a move has
 		if (String(currentCard.val).includes('draw') && move == 'played card') {//Ai used a draw card
 			if (!gameRules.stackOn) {
 				addCardToUser((currentCard.val == 'wild-draw') ? 4 : 2, false);
-				return setTimeout(() => {playAiMove();}, Math.floor(Math.random() * (500 - 250) + 250)); //play Ai turn
+				return setTimeout(() => {playAiMove();}, Math.floor(Math.random() * (500 - 350) + 350));
 			}
 		}
 		if ((currentCard.val == 'reverse' || currentCard.val == 'skip') && move == 'played card') {//return to previous players turn
-			return setTimeout(() => {playAiMove();}, Math.floor(Math.random() * (500 - 250) + 250)); //play Ai turn
+			return setTimeout(() => {playAiMove();}, Math.floor(Math.random() * (500 - 350) + 350));
 		}
 	}
 	playerTurn = !playerTurn;
@@ -248,8 +250,8 @@ function playAiMove() {//makes the Ai take their turn
 	if (playerTurn) throw new Error('not Ai\'s turn');
 	if (AiHand.filter(bin => bin.isValid).length != 0) {//card available to play
 		const validCards = AiHand.filter(bin => bin.isValid);
-		let cardToPLay = validCards.filter(bin => bin.colour == validCards.map(bin => bin.colour).filter(bin => bin != 'black').mode())[0];
-		if (cardToPLay == null) cardToPLay = validCards.filter(bin => bin.colour == 'black')[0]; //use wild
+		let cardToPLay = validCards.filter(bin => bin.colour == validCards.map(bin => bin.colour).filter(bin => bin != 'black').mode()).pickRandom();
+		if (cardToPLay == null) cardToPLay = validCards.filter(bin => bin.colour == 'black').pickRandom(); //use wild
 		currentCard = cardToPLay;
 		document.querySelector('.current-card').src = currentCard.img;
 		AiHand[AiHand.indexOf(cardToPLay)] = null;
@@ -265,8 +267,53 @@ function playAiMove() {//makes the Ai take their turn
 	}
 }
 
+function switchHands() {
+	if (!gameRules.switchHands) throw new Error('invalid rule set: {switchHands}');
+	while (document.querySelector('#user-hand').hasChildNodes()) {
+		document.querySelector('#user-hand').removeChild(document.querySelectorAll('#user-hand > img')[0]);
+	}
+	while (document.querySelector('#Ai-hand').hasChildNodes()) {
+		document.querySelector('#Ai-hand').removeChild(document.querySelectorAll('#Ai-hand > img')[0]);
+	}
+	const userHand_CLONE = userHand.map(bin => bin);
+	const AiHand_CLONE = AiHand.map(bin => bin);
+	userHand = AiHand_CLONE;
+	AiHand = userHand_CLONE;
+	for (const card of userHand) {//NOTE: any changes to the draw functions must also be made here
+		const cardImg = document.createElement('img');
+		cardImg.className = 'user-card';
+		cardImg.draggable = false;
+		cardImg.addEventListener('click', (e) => {//add interactivity | redefine function
+			if (!card.isValid || !playerTurn) return;
+			currentCard = card;
+			document.querySelector('.current-card').src = currentCard.img;
+			userHand[userHand.indexOf(card)] = null;
+			userHand = userHand.filter(bin => bin != null);
+			document.querySelector('#user-hand').removeChild(e.target);
+			document.querySelector('.user-hand-counter').innerHTML = userHand.length;
+			updateHand(document.querySelector('#user-hand'), userHand, false, false);
+			moveAssess(false, 'played card');
+		});
+		document.querySelector('#user-hand').appendChild(cardImg);
+	}
+	updateHand(document.querySelector('#user-hand'), userHand, false, false);
+	document.querySelector('.user-hand-counter').innerHTML = userHand.length;
+	for (let i = 0; i < AiHand.length; i++) {
+		const cardImg = document.createElement('img');
+		cardImg.className = 'Ai-card';
+		cardImg.draggable = false;
+		document.querySelector('#Ai-hand').appendChild(cardImg);
+	}
+	updateHand(document.querySelector('#Ai-hand'), AiHand, true, true);
+	document.querySelector('.Ai-hand-counter').innerHTML = AiHand.length;
+}
+
 Array.prototype.mode = function () {
     return this.sort((a, b) => this.filter(v => v == a).length - this.filter(v => v == b).length).pop();
+}
+
+Array.prototype.pickRandom = function () {
+	return this[Math.floor(Math.random() * this.length)];
 }
 
 function runQTE(title = 'demo', expireTime = 1000) {//execute QTE event
@@ -288,7 +335,7 @@ function runQTE(title = 'demo', expireTime = 1000) {//execute QTE event
 		document.querySelector('.QTE').addEventListener('click', () => {//decline QTE
 			document.body.removeChild(document.querySelector('.QTE'));
 			clearInterval(interval);
-			return reject(0);
+			return resolve(0);
 		});
 	});
 }
