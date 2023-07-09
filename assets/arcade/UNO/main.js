@@ -200,9 +200,9 @@ function updateHand(handElement, handArr, up = false, imgOverwrite = false) {//d
 async function moveAssess(Ai, move) {//completes global actions after a move has been done
 	if (move == 'played card') document.querySelector('.current-card').style.border = ''; //wild changed
 	if (!Ai) {//player makes a move
-		if (gameRules.switchHands && currentCard.val == 0 && move == 'played card') switchHands();
-		if ((currentCard.val == 'reverse' || currentCard.val == 'skip') && move == 'played card') return; //return to previous players turn
-		if (currentCard.colour == 'black' && currentCard.type == 'special' && move == 'played card') {//player used a wild
+		if (gameRules.switchHands && currentCard.val == 0 && move == 'played card') {switchHands(); turnFallOver('Ai');}
+		else if ((currentCard.val == 'reverse' || currentCard.val == 'skip') && move == 'played card') turnFallOver('user'); //skip Ai turn
+		else if (currentCard.colour == 'black' && currentCard.type == 'special' && move == 'played card') {//player used a wild
 			await runWildPicker().then((response) => {
 				currentCard = new Card(currentCard.val, currentCard.type, response, currentCard.img, currentCard.quantity);
 				switch (response) {//change border
@@ -212,17 +212,22 @@ async function moveAssess(Ai, move) {//completes global actions after a move has
 					case 'yellow': document.querySelector('.current-card').style.border = '5px solid rgb(255, 202, 2)'; break;
 				}
 			}).catch(err => console.error(err));
+			if (currentCard.val == 'wild-draw') {//is draw 4
+				if (!gameRules.stackOn) {addCardToAi((currentCard.val == 'wild-draw') ? 4 : 2); turnFallOver('user')}
+				else turnFallOver('Ai');
+			} else turnFallOver('Ai');
 		}
-		if (String(currentCard.val).includes('draw') && move == 'played card') {//player used a draw card
-			if (!gameRules.stackOn) return addCardToAi((currentCard.val == 'wild-draw') ? 4 : 2);
+		else if (String(currentCard.val).includes('draw') && move == 'played card') {//player used a draw card
+			if (!gameRules.stackOn) {addCardToAi((currentCard.val == 'wild-draw') ? 4 : 2); turnFallOver('user')}
+			else turnFallOver('Ai');
 		}
-		if (move == 'drew card' && gameRules.drawToPlay) {//player picked up a card with draw to play enabled
-			while (userHand.filter(bin => bin.isValid).length == 0) addCardToUser(1, false); //keep drawing cards
-		}
-		setTimeout(() => {playAiMove();}, Math.floor(Math.random() * (500 - 350) + 350));
+		else if (move == 'drew card') {//player picked up a card with draw to play enabled
+			if (gameRules.drawToPlay) while (userHand.filter(bin => bin.isValid).length == 0) addCardToUser(1, false); //keep drawing cards
+			turnFallOver('Ai');
+		} else turnFallOver('Ai');
 	} else {//Ai makes a move
-		if (gameRules.switchHands && currentCard.val == 0 && move == 'played card') switchHands();
-		if (currentCard.colour == 'black' && currentCard.type == 'special' && move == 'played card') {//Ai used a wild
+		if (gameRules.switchHands && currentCard.val == 0 && move == 'played card') {switchHands(); turnFallOver('user');}
+		else if (currentCard.colour == 'black' && currentCard.type == 'special' && move == 'played card') {//Ai used a wild
 			const colourToPlay = AiHand.map(bin => bin.colour).filter(bin => bin != 'black').mode();
 			currentCard = new Card(currentCard.val, currentCard.type, colourToPlay, currentCard.img, currentCard.quantity);
 			switch (colourToPlay) {//change border
@@ -231,18 +236,31 @@ async function moveAssess(Ai, move) {//completes global actions after a move has
 				case 'blue': document.querySelector('.current-card').style.border = '5px solid rgb(3, 90, 226)'; break;
 				case 'yellow': document.querySelector('.current-card').style.border = '5px solid rgb(255, 202, 2)'; break;
 			}
+			if (currentCard.val == 'wild-draw') {//is draw 4
+				if (!gameRules.stackOn) {addCardToUser((currentCard.val == 'wild-draw') ? 4 : 2, false); turnFallOver('user');}
+				else turnFallOver('Ai');
+			} else turnFallOver('user');
 		}
-		if (String(currentCard.val).includes('draw') && move == 'played card') {//Ai used a draw card
-			if (!gameRules.stackOn) {
-				addCardToUser((currentCard.val == 'wild-draw') ? 4 : 2, false);
-				return setTimeout(() => {playAiMove();}, Math.floor(Math.random() * (500 - 350) + 350));
-			}
+		else if (String(currentCard.val).includes('draw') && move == 'played card') {//Ai used a draw card
+			if (!gameRules.stackOn) {addCardToUser((currentCard.val == 'wild-draw') ? 4 : 2, false); turnFallOver('user');}
+			else turnFallOver('Ai');
 		}
-		if ((currentCard.val == 'reverse' || currentCard.val == 'skip') && move == 'played card') {//return to previous players turn
-			return setTimeout(() => {playAiMove();}, Math.floor(Math.random() * (500 - 350) + 350));
-		}
+		else if ((currentCard.val == 'reverse' || currentCard.val == 'skip') && move == 'played card') turnFallOver('Ai'); //skip user turn
+		else turnFallOver('user');
 	}
-	playerTurn = !playerTurn;
+}
+
+function turnFallOver(newTurn) {//switches turns from user to Ai and vice versa
+	switch (String(newTurn).toLowerCase()) {
+		case 'user':
+			playerTurn = true;
+			break;
+		case 'ai':
+			playerTurn = false;
+			setTimeout(() => {playAiMove();}, Math.floor(Math.random() * (500 - 350) + 350));
+			break;
+		default: throw new Error(`invalid turn id: ${newTurn}`);
+	}
 	document.querySelector('.turn-displayer').style.top = (playerTurn) ? '65%' : '34.5%';
 }
 
