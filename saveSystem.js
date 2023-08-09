@@ -98,11 +98,9 @@ void function saveRetrieve() {//loads save file if one is found
 }();
 
 document.querySelector('#version-number-alert-id').addEventListener('click', () => {//handle out of date version
-	const titleStr = 'Your save file is out of date. This may cause undesirable results.<br>Do you wish to delete your save file?';
-	getConfirmModalResponse(titleStr, {name: 'Yes', val: true}, {name: 'No', val: false}).then((bool) => {
+	getConfirmModalResponse('Your save file is out of date. This may cause undesirable results.<br>Do you wish to delete your save file?', {name: 'Yes', val: true}, {name: 'No', val: false}).then((bool) => {
 		if (bool) SaveFile.clear(true);
 	}).catch((msg) => {
 		if (msg != 0) console.error(msg);
-		return;
 	});
 });

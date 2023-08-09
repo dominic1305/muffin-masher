@@ -142,6 +142,9 @@ html, body {
 }
 
 .current-card {
+	--select-colour: rgba(0, 0, 0, 0);
+	border: 5px solid var(--select-colour);
+	background-color: var(--select-colour);
 	image-rendering: pixelated;
 	height: 100px;
 	transform: translate(-50%, -50%);
