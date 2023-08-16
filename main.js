@@ -534,7 +534,7 @@ setInterval(() => {//title updater
 }
 	//muffin count formatting system
 function Formatter(input = '', positve = isPositive(input)) {//formats given value
-	const abbrev = Object.freeze(['', '', 'Million', 'Billion', 'Trillion', 'Quadrillion', 'Quintillion', 'Sextillion', 'Septillion', 'Octillion', 'Nonillion', 'Decillion', 'Undecillion', 'Duodecillion', 'Tredecillion', 'Quattuordecillion', 'Quindecillion', 'Sexdecillion', 'Septemdecillion', 'Octodecillion', 'Novemdecillion', 'Vigintillion', 'Unvigintillion', 'Duovigintillion', 'Trevigintillion', 'Quattuorvigintillion']);
+	const abbrev = ['', '', 'Million', 'Billion', 'Trillion', 'Quadrillion', 'Quintillion', 'Sextillion', 'Septillion', 'Octillion', 'Nonillion', 'Decillion', 'Undecillion', 'Duodecillion', 'Tredecillion', 'Quattuordecillion', 'Quindecillion', 'Sexdecillion', 'Septemdecillion', 'Octodecillion', 'Novemdecillion', 'Vigintillion', 'Unvigintillion', 'Duovigintillion', 'Trevigintillion', 'Quattuorvigintillion'];
 	if (input.length < abbrev.length * 3 + 1 && input != '∞') {
 		const unrangifiedOrder = Math.floor(Math.log10(Math.abs(input)) / 3);
 		const order = Math.max(0, Math.min(unrangifiedOrder, abbrev.length - 1));
@@ -813,7 +813,7 @@ function stringEncrypter(str = '', method = 'encode', register = 16) {//converts
 	if (register < 2 || register > 36) throw new Error(`invalid register: ${register}`);
 	if (method == 'encode') {//encode a string
 		const cypher = Math.floor(Math.random() * (100 - 10) + 10);
-		return [`[${enforceByteSize(cypher.toString(register), register)}]`, `{${hashGen(str)}}`, ...String(str).split('').map((bin) => {
+		return [`[${enforceByteSize(cypher.toString(register), register)}]`, `{${hashGen(str, cypher)}}`, ...String(str).split('').map((bin) => {
 			return enforceByteSize((bin.charCodeAt() + cypher).toString(register), register);
 		}).reverse()].join(' ');
 	} else if (method == 'decode') {//decode to string
@@ -822,7 +822,7 @@ function stringEncrypter(str = '', method = 'encode', register = 16) {//converts
 		const finalStr = String(str).split(' ').reverse().slice(0, -2).map((bin) => {//translate characters
 			return String.fromCharCode(parseInt(bin, register) - cypher);
 		}).join('');
-		if (hashGen(finalStr) != hash) throw new Error(`invalid hash: ${hash}`);
+		if (hashGen(finalStr, cypher) != hash) throw new Error(`invalid hash: ${hash}`);
 		else return finalStr;
 	} else throw new Error(`invalid method: ${method}`);
 }
@@ -835,12 +835,16 @@ function enforceByteSize(str, register) {//adds zeros to stay within byte size
 	return String(str);
 }
 
-function hashGen(str) {//return hash string based on input string
-	return Math.abs(String(str).split('').map((bin) => {//get numbers
-		return (bin.charCodeAt() % 2 == 0) ? bin.charCodeAt() + String(str).length : bin.charCodeAt() - String(str).length;
-	}).reduce((bin, count) => {//add up all numbers
-		return bin + count + ((bin % 2 == 0) ? bin << count : bin >> count);
-	}, 0)).toString(36);
+function hashGen (str, seed) {
+	let h1 = 0xdeadbeef ^ seed;
+	let h2 = 0x41c6ce57 ^ seed;
+	for(let i = 0; i < str.length; i++) {
+		h1 = Math.imul(h1 ^ str.charCodeAt(i), 2654435761);
+		h2 = Math.imul(h2 ^ str.charCodeAt(i), 1597334677);
+	}
+	h1 = Math.imul(h1 ^ (h1 >> 16), 2246822507);
+	h2 = Math.imul(h2 ^ (h2 >> 16), 2246822507);
+	return (4294967296 * (2097151 & h2) + (h1 >> 0)).toString(32);
 }
 
 function getValidSaveCode(str) {//checks if imported save is valid
