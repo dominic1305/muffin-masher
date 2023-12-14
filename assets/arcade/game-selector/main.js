@@ -30,6 +30,21 @@ document.querySelectorAll('#machine-btn').forEach((bin) => {//operate machine bu
 	});
 });
 
+document.body.onload = () => {
+	window.parent.postMessage(JSON.stringify({origin: 'arcade', purpose: 'read-tickets-cache'}), '*');
+	window.addEventListener('message', (msg) => {
+		const data = JSON.parse(msg.data);
+		if (data.purpose == 'tickets-cache-data' && Number(data.val) > 0) {//tickets were awarded
+			document.querySelector('.new-tickets-modal > p:nth-child(2)').innerHTML = `You Earned:<br>${data.val}<span class="sub-script">x</span><img src="./img/arcade-ticket.png">`;
+			document.querySelector('.new-tickets-modal').showModal();
+		}
+	}, {once: true});
+}
+
+document.querySelector('.new-tickets-modal > .close-btn').addEventListener('click', () => {
+	document.querySelector('.new-tickets-modal').close();
+});
+
 document.querySelectorAll('.selections-row > div').forEach((bin) => {
 	bin.addEventListener('click', () => {
 		window.parent.postMessage(JSON.stringify({origin: 'arcade', purpose: 'change-SRC', newSRC: bin.dataset.game}), '*');

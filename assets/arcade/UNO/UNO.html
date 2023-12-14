@@ -42,6 +42,15 @@
 		</div>
 	</template>
 
+	<dialog id="game-over-modal">
+		<p class="winner-txt"></p>
+		<p class="results-txt">demo</p>
+		<div class="inputs-container">
+			<div class="play-again-btn">Play Again</div>
+			<div class="cash-out-btn">Cash Out</div>
+		</div>
+	</dialog>
+
 	<main class="wrapper">
 		<img id="draw-card" src="./img/card-back.png" alt="draw card" draggable="false" onclick="addCardToUser(1, true)">
 		<div id="user-hand" class="user-hand"></div>
@@ -50,6 +59,7 @@
 		<p class="Ai-hand-counter">0</p>
 		<img class="current-card" src="" alt="current card" draggable="false">
 		<p class="turn-displayer">Your Turn</p>
+		<p class="total-tickets-earned">0 <img src="./img/arcade-ticket.png"></p>
 	</main>
 
 	<script defer src="./main.js"></script>

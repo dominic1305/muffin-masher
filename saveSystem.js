@@ -1,7 +1,7 @@
 "use strict";
 
 setInterval(() => {//saves every 5 minutes
-	if (!casinoGameActive) SaveFile.write(JSON.stringify(gameData))
+	if (!casinoGameActive || !arcadeGameActive) SaveFile.write(JSON.stringify(gameData))
 }, 3000000);
 
 let saveMessageState = false;

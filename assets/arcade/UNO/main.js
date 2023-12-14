@@ -91,6 +91,7 @@ const cards = Object.freeze({
 let drawPile = createDrawPile();
 let userHand = [new Card()].filter(() => false);
 let AiHand = [new Card()].filter(() => false);
+let gameOver = false;
 const gameRules = {
 	drawToPlay: false,
 	switchHands: false,
@@ -98,18 +99,32 @@ const gameRules = {
 };
 let currentCard = new Card();
 let playerTurn = true;
+const playerMoveCounter = function* () {
+	let i = 1;
+	while (true) {
+		const val = yield i;
+		(val == 'reset') ? i = 0 : (val == 'read') ? i : i++;
+	}
+}();
+const AiMoveCounter = function* () {
+	let i = 1;
+	while (true) {
+		const val = yield i;
+		(val == 'reset') ? i = 0 : (val == 'read') ? i : i++;
+	}
+}();
+let totalTickets = 0;
 
 document.querySelector('.game-start-btn').addEventListener('click', () => {//game start
-	document.querySelectorAll('.modal-inputs > p > input').forEach((bin) => {//set rules
-		gameRules[bin.id] = bin.checked;
-	});
+	document.querySelectorAll('.modal-inputs > p > input').forEach(bin => gameRules[bin.id] = bin.checked); //set game rules
 	Object.freeze(gameRules);
-	addCardToAi(64); //TEST: change back to 7
-	addCardToUser(64); //TEST: change back to 7
-	currentCard = drawCard();
+	addCardToAi(7);
+	addCardToUser(7);
+	currentCard = drawCard(true);
 	document.querySelector('.current-card').src = currentCard.img;
 	document.querySelector('.wrapper').style.visibility = 'visible';
 	document.querySelector('.modal').style.display = 'none';
+	window.parent.postMessage(JSON.stringify({origin: 'arcade', purpose: 'game-start'}), '*');
 });
 
 function createDrawPile() {//generate draw pile
@@ -133,11 +148,12 @@ function getCardPosXArr(number = 1, spacing = 3) {//returns card position array
 	return arr;
 }
 
-function drawCard() {//pull random card from draw pile
+function drawCard(starter = false) {//pull random card from draw pile
 	if (drawPile.length <= 0) drawPile = createDrawPile();
 	const cardSelected = drawPile[Math.floor(Math.random() * drawPile.length)];
+	if (starter && cardSelected.type == 'special') return drawCard(starter); //skip special cards for starter
 	drawPile[drawPile.indexOf(cardSelected)] = null;
-	drawPile = drawPile.filter(bin => bin != null);
+	drawPile = drawPile.filter(bin => bin instanceof Card);
 	return cardSelected;
 }
 
@@ -147,36 +163,37 @@ function searchCard(handArr, val, colour, type) {//returns card object in hand b
 
 function addCardToUser(drawTimes = 1, callBack = false) {//draw card to users hand
 	if (!playerTurn && callBack) return;
-	for (let i = 0; i < drawTimes; i++) {
+	for (let i = 0; i < drawTimes; i++) {//NOTE: any changes to this function must also be made to 'switchHands'
 		if (Number(document.querySelector('.user-hand-counter').innerHTML) >= 64) break;
-		const card = drawCard();
+		const card = drawCard(false);
 		userHand.push(card);
 		const cardImg = document.createElement('img');
 		cardImg.className = 'user-card';
 		cardImg.draggable = false;
 		cardImg.addEventListener('click', (e) => {//add interactivity
 			const card = searchCard(userHand, e.target.dataset.value, e.target.dataset.colour, e.target.dataset.type);
-			if (!card.isValid || !playerTurn) return;
+			if (!card.isValid || !playerTurn || gameOver) return;
+			playerMoveCounter.next();
 			currentCard = card;
 			document.querySelector('.current-card').src = currentCard.img;
 			userHand[userHand.indexOf(card)] = null;
-			userHand = userHand.filter(bin => bin != null);
+			userHand = userHand.filter(bin => bin instanceof Card);
 			document.querySelector('#user-hand').removeChild(e.target);
 			document.querySelector('.user-hand-counter').innerHTML = userHand.length;
 			updateHand(document.querySelector('#user-hand'), userHand, false, false);
 			if (document.querySelector('.QTE') == null) moveAssess(false, 'played card');
 		});
 		document.querySelector('#user-hand').appendChild(cardImg);
-		document.querySelector('.user-hand-counter').innerHTML = userHand.length;
 	}
 	updateHand(document.querySelector('#user-hand'), userHand, false, false);
+	document.querySelector('.user-hand-counter').innerHTML = userHand.length;
 	if (callBack) moveAssess(false, 'drew card');
 }
 
 function addCardToAi(drawTimes = 1) {//draw card to Ai hand
 	for (let i = 0; i < drawTimes; i++) {
 		if (Number(document.querySelector('.Ai-hand-counter').innerHTML) >= 64) break;
-		const card = drawCard();
+		const card = drawCard(false);
 		AiHand.push(card);
 		const cardImg = document.createElement('img');
 		cardImg.className = 'Ai-card';
@@ -195,8 +212,7 @@ function updateHand(handElement, handArr, up = false, imgOverwrite = false) {//d
 			bin.dataset.colour = chunk[i2].colour;
 			bin.dataset.value = chunk[i2].val;
 			bin.dataset.type = chunk[i2].type;
-			// bin.src = (!imgOverwrite) ? chunk[i2].img : './img/card-back.png'; //TEST: use this line on final | only to see what Ai has
-			bin.src = chunk[i2].img; //TEST: use line above
+			bin.src = (!imgOverwrite) ? chunk[i2].img : './img/card-back.png';
 			bin.style.left = `${posArr[i2]}%`;
 			bin.style.top = `${(!up) ? '' : '-'}${Math.ceil(i1 / 16) * 30}%`;
 		});
@@ -205,52 +221,69 @@ function updateHand(handElement, handArr, up = false, imgOverwrite = false) {//d
 
 async function moveAssess(Ai, move) {//completes global actions after a move has been done
 	if (move == 'played card') document.querySelector('.current-card').style.setProperty('--select-colour', 'rgba(0, 0, 0, 0'); //wild changed
-	if (!Ai) {//player makes a move
+	if (userHand.length <= 0 || AiHand.length <= 0) {//someone has won
+		gameOver = true;
+		document.querySelector('.winner-txt').innerHTML = (userHand.length <= 0) ? 'You Won' : 'You Lost';
+		document.querySelector('.results-txt').innerHTML = `You Earned:<br>${(userHand.length <= 0) ? getTicketAmount() : 0}<span class="sub-script">x</span><img src="./img/arcade-ticket.png">`;
+		document.querySelector('#game-over-modal').showModal();
+	} else if (!Ai) {//player makes a move
 		if (gameRules.switchHands && currentCard.val == 0 && move == 'played card') {switchHands(); switchTurn('Ai');}
 		else if ((currentCard.val == 'reverse' || currentCard.val == 'skip') && move == 'played card') switchTurn('user'); //skip Ai turn
 		else if (currentCard.colour == 'black' && currentCard.type == 'special' && move == 'played card') {//player used a wild
 			await runWildPicker().then((response) => {
 				currentCard = new Card(currentCard.val, currentCard.type, response, currentCard.img, currentCard.quantity);
 				switch (response) {//change border
-					case 'red':	document.querySelector('.current-card').style.setProperty('--select-colour', 'rgba(254, 0, 0, 1)'); break;
+					case 'red': document.querySelector('.current-card').style.setProperty('--select-colour', 'rgba(254, 0, 0, 1)'); break;
 					case 'green': document.querySelector('.current-card').style.setProperty('--select-colour', 'rgba(1, 186, 3, 1)'); break;
 					case 'blue': document.querySelector('.current-card').style.setProperty('--select-colour', 'rgba(3, 90, 226, 1)'); break;
 					case 'yellow': document.querySelector('.current-card').style.setProperty('--select-colour', 'rgba(255, 202, 2, 1)'); break;
 				}
 			}).catch(err => console.error(err));
 			if (currentCard.val == 'wild-draw') {//is draw 4
-				if (AiHand.filter(bin => String(bin.val).includes('draw')).length != 0 && gameRules.stackOn) {//Ai can counter
+				if (AiHand.some(bin => String(bin.val).includes('draw')) && gameRules.stackOn) {//Ai can counter
 					setTimeout(() => {
 						const cardToPLay = AiHand.filter(bin => String(bin.val).includes('draw')).pickRandom();
 						currentCard = cardToPLay;
+						sessionStorage.setItem('cards_to_pickup', Number(sessionStorage.getItem('cards_to_pickup')) + ((currentCard.val == 'wild-draw') ? 4 : 2));
 						document.querySelector('.current-card').src = currentCard.img;
 						AiHand[AiHand.indexOf(cardToPLay)] = null;
-						AiHand = AiHand.filter(bin => bin != null);
+						AiHand = AiHand.filter(bin => bin instanceof Card);
 						document.querySelector('#Ai-hand').removeChild(document.querySelector('#Ai-hand > img'));
 						document.querySelector('.Ai-hand-counter').innerHTML = AiHand.length;
 						updateHand(document.querySelector('#Ai-hand'), AiHand, true, true);
 						moveAssess(true, 'played card');
 					}, Math.floor(Math.random() * (500 - 350) + 350));
-				} else {addCardToAi((currentCard.val == 'wild-draw') ? 4 : 2); switchTurn('user');}
+				} else {//Ai cannot counter | add cards to Ai hand
+					sessionStorage.setItem('cards_to_pickup', Number(sessionStorage.getItem('cards_to_pickup')) + ((currentCard.val == 'wild-draw') ? 4 : 2));
+					addCardToAi((sessionStorage.getItem('cards_to_pickup') == null) ? ((currentCard.val == 'wild-draw') ? 4 : 2) : Number(sessionStorage.getItem('cards_to_pickup')));
+					effectEngine('draw', {userDirection: false});
+					sessionStorage.removeItem('cards_to_pickup');
+					switchTurn('user');
+				}
 			} else switchTurn('Ai');
-		}
-		else if (String(currentCard.val).includes('draw') && move == 'played card') {//player used a draw card
-			if (AiHand.filter(bin => String(bin.val).includes('draw')).length != 0 && gameRules.stackOn) {//Ai can counter
+		} else if (String(currentCard.val).includes('draw') && move == 'played card') {//player used a draw card
+			if (AiHand.some(bin => String(bin.val).includes('draw')) && gameRules.stackOn) {//Ai can counter
 				setTimeout(() => {
 					const cardToPLay = AiHand.filter(bin => String(bin.val).includes('draw')).pickRandom();
 					currentCard = cardToPLay;
+					sessionStorage.setItem('cards_to_pickup', Number(sessionStorage.getItem('cards_to_pickup')) + ((currentCard.val == 'wild-draw') ? 4 : 2));
 					document.querySelector('.current-card').src = currentCard.img;
 					AiHand[AiHand.indexOf(cardToPLay)] = null;
-					AiHand = AiHand.filter(bin => bin != null);
+					AiHand = AiHand.filter(bin => bin instanceof Card);
 					document.querySelector('#Ai-hand').removeChild(document.querySelector('#Ai-hand > img'));
 					document.querySelector('.Ai-hand-counter').innerHTML = AiHand.length;
 					updateHand(document.querySelector('#Ai-hand'), AiHand, true, true);
 					moveAssess(true, 'played card');
 				}, Math.floor(Math.random() * (500 - 350) + 350));
-			} else {addCardToAi((currentCard.val == 'wild-draw') ? 4 : 2); switchTurn('user');}
-		}
-		else if (move == 'drew card') {//player picked up a card with draw to play enabled
-			if (gameRules.drawToPlay) while (userHand.filter(bin => bin.isValid).length == 0) addCardToUser(1, false); //keep drawing cards
+			} else {//Ai cannot counter | add cards to Ai hand
+				sessionStorage.setItem('cards_to_pickup', Number(sessionStorage.getItem('cards_to_pickup')) + ((currentCard.val == 'wild-draw') ? 4 : 2));
+				addCardToAi((sessionStorage.getItem('cards_to_pickup') == null) ? ((currentCard.val == 'wild-draw') ? 4 : 2) : Number(sessionStorage.getItem('cards_to_pickup')));
+				effectEngine('draw', {userDirection: false});
+				sessionStorage.removeItem('cards_to_pickup');
+				switchTurn('user');
+			}
+		} else if (move == 'drew card') {//player picked up a card with draw to play enabled
+			if (gameRules.drawToPlay) while (!userHand.some(bin => bin.isValid)) addCardToUser(1, false); //keep drawing cards
 			switchTurn('Ai');
 		} else switchTurn('Ai');
 	} else {//Ai makes a move
@@ -259,33 +292,47 @@ async function moveAssess(Ai, move) {//completes global actions after a move has
 			const colourToPlay = AiHand.map(bin => bin.colour).filter(bin => bin != 'black').mode();
 			currentCard = new Card(currentCard.val, currentCard.type, colourToPlay, currentCard.img, currentCard.quantity);
 			switch (colourToPlay) {//change border
-				case 'red':	document.querySelector('.current-card').style.setProperty('--select-colour', 'rgba(254, 0, 0, 1)'); break;
+				case 'red': document.querySelector('.current-card').style.setProperty('--select-colour', 'rgba(254, 0, 0, 1)'); break;
 				case 'green': document.querySelector('.current-card').style.setProperty('--select-colour', 'rgba(1, 186, 3, 1)'); break;
 				case 'blue': document.querySelector('.current-card').style.setProperty('--select-colour', 'rgba(3, 90, 226, 1)'); break;
 				case 'yellow': document.querySelector('.current-card').style.setProperty('--select-colour', 'rgba(255, 202, 2, 1)'); break;
 			}
 			if (currentCard.val == 'wild-draw') {//is draw 4
-				if (userHand.filter(bin => String(bin.val).includes('draw')).length != 0 && gameRules.stackOn) {//user can counter
-					const initLength = userHand.length
+				if (userHand.some(bin => String(bin.val).includes('draw')) && gameRules.stackOn) {//user can counter
+					const initLength = userHand.length;
+					switchTurn('user');
 					await runQTE('Counter Draw Card', 5000).then(() => {
-						if (initLength != userHand.length) {//user counter
-							moveAssess(false, 'played card')
+						if (initLength != userHand.length) {//user countered
+							sessionStorage.setItem('cards_to_pickup', Number(sessionStorage.getItem('cards_to_pickup')) + ((currentCard.val == 'wild-draw') ? 4 : 2));
+							moveAssess(false, 'played card');
 						} else {addCardToUser((currentCard.val == 'wild-draw') ? 4 : 2, false); switchTurn('user');}
 					}).catch(err => console.error(err));
-				} else {addCardToUser((currentCard.val == 'wild-draw') ? 4 : 2, false); switchTurn('user');}
+				} else {//user cannot counter | add cards to user hand
+					sessionStorage.setItem('cards_to_pickup', Number(sessionStorage.getItem('cards_to_pickup')) + ((currentCard.val == 'wild-draw') ? 4 : 2));
+					addCardToUser((sessionStorage.getItem('cards_to_pickup') == null) ? ((currentCard.val == 'wild-draw') ? 4 : 2) : Number(sessionStorage.getItem('cards_to_pickup')), false);
+					effectEngine('draw', {userDirection: true});
+					sessionStorage.removeItem('cards_to_pickup');
+					switchTurn('Ai');
+				}
 			} else switchTurn('user');
-		}
-		else if (String(currentCard.val).includes('draw') && move == 'played card') {//Ai used a draw card
-			if (userHand.filter(bin => String(bin.val).includes('draw')).length != 0 && gameRules.stackOn) {//user can counter
-				const initLength = userHand.length
+		} else if (String(currentCard.val).includes('draw') && move == 'played card') {//Ai used a draw card
+			if (userHand.some(bin => String(bin.val).includes('draw')) && gameRules.stackOn) {//user can counter
+				const initLength = userHand.length;
+				switchTurn('user');
 				await runQTE('Counter Draw Card', 5000).then(() => {
-					if (initLength != userHand.length) {//user counter
-						moveAssess(false, 'played card')
+					if (initLength != userHand.length) {//user countered
+						sessionStorage.setItem('cards_to_pickup', Number(sessionStorage.getItem('cards_to_pickup')) + ((currentCard.val == 'wild-draw') ? 4 : 2));
+						moveAssess(false, 'played card');
 					} else {addCardToUser((currentCard.val == 'wild-draw') ? 4 : 2, false); switchTurn('user');}
 				}).catch(err => console.error(err));
-			} else {addCardToUser((currentCard.val == 'wild-draw') ? 4 : 2, false); switchTurn('user');}
-		}
-		else if ((currentCard.val == 'reverse' || currentCard.val == 'skip') && move == 'played card') switchTurn('Ai'); //skip user turn
+			} else {//user cannot counter | add cards to user hand
+				sessionStorage.setItem('cards_to_pickup', Number(sessionStorage.getItem('cards_to_pickup')) + ((currentCard.val == 'wild-draw') ? 4 : 2));
+				addCardToUser((sessionStorage.getItem('cards_to_pickup') == null) ? ((currentCard.val == 'wild-draw') ? 4 : 2) : Number(sessionStorage.getItem('cards_to_pickup')), false);
+				effectEngine('draw', {userDirection: true});
+				sessionStorage.removeItem('cards_to_pickup');
+				switchTurn('Ai');
+			}
+		} else if ((currentCard.val == 'reverse' || currentCard.val == 'skip') && move == 'played card') switchTurn('Ai'); //skip user turn
 		else switchTurn('user');
 	}
 }
@@ -304,57 +351,47 @@ function switchTurn(newTurn) {//switches turns from user to Ai and vice versa
 	document.querySelector('.turn-displayer').style.top = (playerTurn) ? '65%' : '34.5%';
 }
 
-function AiPlayDraw() {//TEST: for demo purposes | delete on final
-	playerTurn = false;
-	currentCard = new Card('draw', 'special', 'blue', './img/blue/draw.png', 2),
-	document.querySelector('.current-card').src = currentCard.img;
-	moveAssess(true, 'played card');
-}
-
 function playAiMove() {//makes the Ai take their turn
-	if (playerTurn) throw new Error('not Ai\'s turn');
-	if (AiHand.filter(bin => bin.isValid).length != 0) {//card available to play
+	if (playerTurn || gameOver) return;
+	if (AiHand.some(bin => bin.isValid)) {//card available to play
+		AiMoveCounter.next();
 		const validCards = AiHand.filter(bin => bin.isValid);
-		let cardToPLay = validCards.filter(bin => bin.colour == validCards.map(bin => bin.colour).filter(bin => bin != 'black').mode()).pickRandom();
-		if (cardToPLay == null) cardToPLay = validCards.filter(bin => bin.colour == 'black').pickRandom(); //use wild
+		const cardToPLay = validCards.filter(bin => bin.colour == validCards.map(bin => bin.colour).filter(bin => bin != 'black').mode()).pickRandom() ?? validCards.filter(bin => bin.colour == 'black').pickRandom();
 		currentCard = cardToPLay;
 		document.querySelector('.current-card').src = currentCard.img;
 		AiHand[AiHand.indexOf(cardToPLay)] = null;
-		AiHand = AiHand.filter(bin => bin != null);
+		AiHand = AiHand.filter(bin => bin instanceof Card);
 		document.querySelector('#Ai-hand').removeChild(document.querySelector('#Ai-hand > img'));
 		document.querySelector('.Ai-hand-counter').innerHTML = AiHand.length;
 		updateHand(document.querySelector('#Ai-hand'), AiHand, true, true);
 		moveAssess(true, 'played card');
 	} else {//no card to play | pick up
 		if (!gameRules.drawToPlay) addCardToAi(1);
-		else while (AiHand.filter(bin => bin.isValid).length == 0) addCardToAi(1);
+		else while (!AiHand.some(bin => bin.isValid)) addCardToAi(1);
 		moveAssess(true, 'drew card');
 	}
 }
 
 function switchHands() {
 	if (!gameRules.switchHands) throw new Error('invalid rule set: {switchHands}');
-	while (document.querySelector('#user-hand').hasChildNodes()) {
-		document.querySelector('#user-hand').removeChild(document.querySelectorAll('#user-hand > img')[0]);
-	}
-	while (document.querySelector('#Ai-hand').hasChildNodes()) {
-		document.querySelector('#Ai-hand').removeChild(document.querySelectorAll('#Ai-hand > img')[0]);
-	}
+	while (document.querySelector('#user-hand').hasChildNodes()) document.querySelector('#user-hand').removeChild(document.querySelectorAll('#user-hand > img')[0]);
+	while (document.querySelector('#Ai-hand').hasChildNodes()) document.querySelector('#Ai-hand').removeChild(document.querySelectorAll('#Ai-hand > img')[0]);
 	const userHand_CLONE = userHand.map(bin => bin);
 	const AiHand_CLONE = AiHand.map(bin => bin);
 	userHand = AiHand_CLONE;
 	AiHand = userHand_CLONE;
-	for (let i = 0; i < userHand.length; i++) {//NOTE: any changes to the draw functions must also be made here
+	for (let i = 0; i < userHand.length; i++) {//NOTE: any changes to 'addCardToUser' must also be made here
 		const cardImg = document.createElement('img');
 		cardImg.className = 'user-card';
 		cardImg.draggable = false;
 		cardImg.addEventListener('click', (e) => {//add interactivity | redefine function
 			const card = searchCard(userHand, e.target.dataset.value, e.target.dataset.colour, e.target.dataset.type);
 			if (!card.isValid || !playerTurn) return;
+			playerMoveCounter.next();
 			currentCard = card;
 			document.querySelector('.current-card').src = currentCard.img;
 			userHand[userHand.indexOf(card)] = null;
-			userHand = userHand.filter(bin => bin != null);
+			userHand = userHand.filter(bin => bin instanceof Card);
 			document.querySelector('#user-hand').removeChild(e.target);
 			document.querySelector('.user-hand-counter').innerHTML = userHand.length;
 			updateHand(document.querySelector('#user-hand'), userHand, false, false);
@@ -372,14 +409,41 @@ function switchHands() {
 	}
 	updateHand(document.querySelector('#Ai-hand'), AiHand, true, true);
 	document.querySelector('.Ai-hand-counter').innerHTML = AiHand.length;
+	effectEngine('swap');
 }
 
 Array.prototype.mode = function () {
-    return this.sort((a, b) => this.filter(v => v == a).length - this.filter(v => v == b).length).pop();
+	return this.sort((a, b) => this.filter(v => v == a).length - this.filter(v => v == b).length).pop();
 }
 
 Array.prototype.pickRandom = function () {
 	return this[Math.floor(Math.random() * this.length)];
+}
+
+function Formatter(input = '', positve = isPositive(input)) {//formats given value
+	const abbrev = ['', '', 'Million', 'Billion', 'Trillion', 'Quadrillion', 'Quintillion', 'Sextillion', 'Septillion', 'Octillion', 'Nonillion', 'Decillion', 'Undecillion', 'Duodecillion', 'Tredecillion', 'Quattuordecillion', 'Quindecillion', 'Sexdecillion', 'Septemdecillion', 'Octodecillion', 'Novemdecillion', 'Vigintillion', 'Unvigintillion', 'Duovigintillion', 'Trevigintillion', 'Quattuorvigintillion'];
+	if (input.length < abbrev.length * 3 + 1 && input != '∞') {
+		const unrangifiedOrder = Math.floor(Math.log10(Math.abs(input)) / 3);
+		const order = Math.max(0, Math.min(unrangifiedOrder, abbrev.length - 1));
+		const str = `${parseFloat((input / Math.pow(10, order * 3)).toFixed(2))} ${abbrev[order]}`;
+		return (positve) ? str : `-${str}`;
+	} else {
+		return (positve) ? 'Infinity' : '-Infinity';
+	}
+}
+
+function suffixApplier(input = 0) {//shortens value and adds suffixes
+	if (Number(input) != String(input)) throw new Error(`invalid input type: ${typeof input}`);
+	const number = Math.round(Math.abs(input));
+	if (number >= 1e+6 || number <= -1e+6) {//only formats if more than a million
+		return Formatter((number).toLocaleString('fullwide', {useGrouping: false}), isPositive(input));
+	} else {//less than a million
+		return (isPositive(input) ? '' : '-') + parseInt(number).toLocaleString('fullwide', {useGrouping: true});
+	}
+}
+
+function isPositive(val) {//returns if passed value is positve
+	return (Math.abs(val) == val);
 }
 
 function runQTE(title = 'demo', expireTime = 1000) {//execute QTE event
@@ -417,4 +481,53 @@ function runWildPicker() {//execute wild picker event
 			});
 		});
 	});
+}
+
+function getTicketAmount() {//mutates totalTickets!
+	const ticketsToAdd = Math.round(playerMoveCounter.next('read').value * (Math.random() * (1.75 - 1.25) + 1.25));
+	totalTickets += ticketsToAdd;
+	return ticketsToAdd;
+}
+
+document.querySelector('.play-again-btn').addEventListener('click', () => {//reset game
+	playerMoveCounter.next('reset');
+	AiMoveCounter.next('reset');
+	sessionStorage.removeItem('cards_to_pickup');
+	document.querySelector('.total-tickets-earned').innerHTML = `${totalTickets}<span class="sub-script">x</span> <img src="./img/arcade-ticket.png">`;
+	if (totalTickets > 0) document.querySelector('.total-tickets-earned').style.visibility = 'visible';
+	userHand = userHand.filter(() => false); //reset user hand
+	while (document.querySelector('#user-hand').hasChildNodes()) document.querySelector('#user-hand').removeChild(document.querySelectorAll('#user-hand > img')[0]);
+	addCardToUser(7);
+	document.querySelector('.user-hand-counter').innerHTML = userHand.length;
+	AiHand = AiHand.filter(() => false); //reset ai hand
+	while (document.querySelector('#Ai-hand').hasChildNodes()) document.querySelector('#Ai-hand').removeChild(document.querySelectorAll('#Ai-hand > img')[0]);
+	addCardToAi(7);
+	document.querySelector('.Ai-hand-counter').innerHTML = AiHand.length;
+	drawPile = drawPile.filter(() => false); //reset draw pile
+	drawPile = createDrawPile();
+	currentCard = drawCard(true); //reset current card
+	document.querySelector('.current-card').src = currentCard.img;
+	switchTurn((playerMoveCounter.next('read').value <= AiMoveCounter.next('read').value) ? 'user' : 'Ai');
+	document.querySelector('#game-over-modal').close();
+});
+
+document.querySelector('.cash-out-btn').addEventListener('click', () => {//exit game
+	window.parent.postMessage(JSON.stringify({origin: 'arcade', purpose: 'cash-out', val: totalTickets}), '*');
+});
+
+function effectEngine(effect, {userDirection = true} = {userDirection: true}) {//display effects to the screen
+	if (effect == 'swap') {
+		const element = document.createElement('img');
+		element.className = 'swap-effect';
+		element.src = './img/swap-icon.png';
+		document.body.appendChild(element);
+		setTimeout(() => document.body.removeChild(element), parseFloat(window.getComputedStyle(element).animation.split(' ')[0]) * 1000);
+	} else if (effect == 'draw') {
+		const element = document.createElement('p');
+		element.className = 'draw-effect';
+		element.innerHTML = `+${(sessionStorage.getItem('cards_to_pickup') == null) ? ((currentCard.val == 'wild-draw') ? 4 : 2) : Number(sessionStorage.getItem('cards_to_pickup'))}`;
+		element.style.setProperty('--direction', (userDirection) ? '200%' : '-275%');
+		document.body.appendChild(element);
+		setTimeout(() => document.body.removeChild(element), parseFloat(window.getComputedStyle(element).animation.split(' ')[0]) * 1000);
+	} else throw new Error(`invalid effect: ${effect}`);
 }

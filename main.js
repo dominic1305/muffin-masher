@@ -133,6 +133,23 @@ class SkinItem {
 	get img() {//return skin image file address
 		return `./img/${this.IMG}.png`;
 	}
+	get skinPaymentMethod() {
+		return new Promise((resolve, reject) => {
+			document.querySelector('.purchase-options').style.visibility = 'visible';
+			document.querySelector('.purchase-options-backdrop').style.visibility = 'visible';
+			document.querySelector('.purchase-options').addEventListener('click', (e) => {
+				document.querySelector('.purchase-options > .inputs > #purchase-muffins-btn').style.border = 'outset';
+				document.querySelector('.purchase-options > .inputs > #purchase-tickets-btn').style.border = 'outset';
+				switch (e.target) {
+					case document.querySelector('.purchase-options > .inputs > #purchase-muffins-btn'): resolve('muffins'); break;
+					case document.querySelector('.purchase-options > .inputs > #purchase-tickets-btn'): resolve('tickets'); break;
+					case document.querySelector('.purchase-options > #purchase-cancel-btn'): reject(0); break;
+				}
+				document.querySelector('.purchase-options').style.visibility = 'hidden';
+				document.querySelector('.purchase-options-backdrop').style.visibility = 'hidden';
+			}, {once: true});
+		});
+	}
 	selectSkin() {//change muffin skin if unlocked
 		this.element.style.border = 'outset';
 		if (this.lockState) return;
@@ -144,7 +161,7 @@ class SkinItem {
 	}
 	unlockSkin() {//unlock selected skin
 		if (!this.lockState) return; //already unlocked
-		getSkinPaymentMethod().then((msg) => {//choose payment method
+		this.skinPaymentMethod.then((msg) => {//choose payment method
 			if (msg == 'muffins' && gameData.muffinCount >= this.cost) {//buy with muffins
 				gameData.muffinCount -= this.cost;
 				this.lockState = false;
@@ -190,10 +207,20 @@ class SkinItem {
 	}
 }
 
+document.querySelector('#open-skins').addEventListener('click', () => {//show skins modal
+	document.querySelector('#open-skins').style.border = 'outset';
+	document.querySelector('#skin-modal').showModal();
+});
+
+document.querySelector('#close-skins').addEventListener('click', () => {//hide skins modal
+	document.querySelector('#skin-modal').close()
+	document.querySelector('#close-skins').style.border = 'outset';
+});
+
 class Cache {
 	static write(key, value, expiry) {
 		const date = new Date();
-		date.setTime(date.getTime() + expiry);
+		date.setTime(date.valueOf() + expiry);
 		document.cookie = `${key}=${value};expires=${date.toUTCString()};path=/`;
 	}
 	static read(key, remove = true) {
@@ -209,9 +236,7 @@ class Cache {
 		document.cookie = `${key}=;expires=${new Date().toUTCString()}`;
 	}
 	static clear() {
-		document.cookie.split(' ').forEach((bin) => {
-			document.cookie = `${bin.split('=')[0]}=;expires=${new Date().toUTCString()}`;
-		});
+		document.cookie.split(' ').forEach(bin => document.cookie = `${bin.split('=')[0]}=;expires=${new Date().toUTCString()}`);
 	}
 }
 
@@ -265,7 +290,7 @@ let gameData = {
 	},
 };
 
-document.querySelector('.upgradeClickerButton').addEventListener('click', (e) => {//purchase upgrade clicker
+document.querySelector('.upgradeClickerButton').addEventListener('click', () => {//purchase upgrade clicker
 	if (gameData.upgradeClicker != null && gameData.upgradeClicker instanceof BaseProducer) gameData.upgradeClicker.purchase();
 });
 
@@ -486,7 +511,7 @@ function toggleCursorAnimation() {//flashing cursor animation
 
 function sell() {//toggle sell state
 	gameData.sellState = !gameData.sellState;
-	document.getElementById('sellButton').style.backgroundColor = gameData.sellState ? 'lightgreen' : '#FF4A3F';
+	document.querySelector('#sellButton').style.backgroundColor = gameData.sellState ? 'lightgreen' : '#FF4A3F';
 }
 
 function borderChange(target) {//changes borders
@@ -714,8 +739,8 @@ function Muffin2Click(number) {//apply frenzy effect
 		gameData.muffinCount += gameData.MPS * gift;
 	}
 	function addChild(msg) {
-		const X = document.getElementById('muffin-IMG-2-ID').offsetLeft + 75;
-		let Y = document.getElementById('muffin-IMG-2-ID').offsetTop;
+		const X = document.querySelector('#muffin-IMG-2-ID').offsetLeft + 75;
+		let Y = document.querySelector('#muffin-IMG-2-ID').offsetTop;
 		const element = document.createElement('p');
 		document.querySelector('.wrapper').appendChild(element);
 		element.className = 'frenzy-txt';
@@ -735,57 +760,38 @@ function Muffin2Click(number) {//apply frenzy effect
 		}, 10);
 	}
 }
-	//skin system
-const skinsModal = document.querySelector('#skin-modal');
-const openSkinModal = document.querySelector('#open-skins');
-const closeSkinModal = document.querySelector('#close-skins');
 
-function getSkinPaymentMethod() {
-	return new Promise((resolve, reject) => {
-		document.querySelector('.purchase-options').style.visibility = 'visible';
-		document.querySelector('.purchase-options-backdrop').style.visibility = 'visible';
-		document.querySelector('.purchase-options').addEventListener('click', (e) => {
-			document.querySelector('.purchase-options > .inputs > #purchase-muffins-btn').style.border = 'outset';
-			document.querySelector('.purchase-options > .inputs > #purchase-tickets-btn').style.border = 'outset';
-			switch (e.target) {
-				case document.querySelector('.purchase-options > .inputs > #purchase-muffins-btn'): resolve('muffins'); break;
-				case document.querySelector('.purchase-options > .inputs > #purchase-tickets-btn'): resolve('tickets'); break;
-				case document.querySelector('.purchase-options > #purchase-cancel-btn'): reject(0); break;
-			}
-			document.querySelector('.purchase-options').style.visibility = 'hidden';
-			document.querySelector('.purchase-options-backdrop').style.visibility = 'hidden';
-		}, {once: true});
-	});
-}
-
-openSkinModal.addEventListener('click', () => {//show skins modal
-	openSkinModal.style.border = 'outset';
-	skinsModal.showModal();
-});
-
-closeSkinModal.addEventListener('click', () => {//hide skins modal
-	skinsModal.close()
-	document.getElementById('close-skins').style.border = 'outset';
-});
-	//casino system
-const openCasinoBtn = document.querySelector('#open-casino');
-const casinoModal = document.querySelector('.casino-modal');
-const closeCasinoModal = document.querySelector('#casino-modal-close');
-const casinoIframe = document.querySelector('#casino-iframe');
 let casinoGameActive = false;
+let arcadeGameActive = false;
 
-openCasinoBtn.addEventListener('click', () => {//open modal
-	casinoIframe.src = 'assets/casino/casino-selector/casinoSelector.html';
-	openCasinoBtn.style.border = 'outset';
-	casinoModal.showModal();
+document.querySelector('#open-casino').addEventListener('click', () => {//open casino modal
+	document.querySelector('#casino-iframe').src = 'assets/casino/casino-selector/casinoSelector.html';
+	document.querySelector('#open-casino').style.border = 'outset';
+	document.querySelector('.casino-modal').showModal();
 });
 
-closeCasinoModal.addEventListener('click', () => {//close modal
+document.querySelector('#casino-modal-close').addEventListener('click', () => {//close casino modal
 	if (casinoGameActive) return;
 	SaveFile.write(JSON.stringify(gameData))
-	casinoIframe.src = '';
-	document.getElementById('casino-game-title-txt').innerHTML = '';
-	casinoModal.close();
+	document.querySelector('#casino-iframe').src = '';
+	document.querySelector('#casino-game-title-txt').innerHTML = '';
+	document.querySelector('.casino-modal').close();
+});
+
+document.querySelector('#open-arcade').addEventListener('click', () => {//open arcade modal
+	document.querySelector('#open-arcade').style.border = 'outset';
+	document.querySelector('#arcade-modal').showModal();
+	document.querySelector('#arcade-iframe').src = './assets/arcade/game-selector/gameSelector.html';
+});
+
+document.querySelectorAll('#arcade-modal-close-btn').forEach((bin) => {//close arcade modal
+	bin.addEventListener('click', () => {
+		document.querySelector('.arcade-modal-footer > .arcade-modal-close-btn').style.border = 'outset';
+		if (arcadeGameActive) return;
+		document.querySelector('.arcade-modal-title').innerHTML = 'Arcade';
+		document.querySelector('#arcade-iframe').src = '';
+		document.querySelector('#arcade-modal').close();
+	});
 });
 
 window.addEventListener('message', (msg) => {//evaluate messages from iframes (casino / arcade)
@@ -793,7 +799,7 @@ window.addEventListener('message', (msg) => {//evaluate messages from iframes (c
 	if (data.origin == 'casino') {//recieve data from casino
 		switch (data.purpose) {
 			case 'change-SRC': //change casino iframe source file address
-				casinoIframe.src = data.newSRC;
+				document.querySelector('#casino-iframe').src = data.newSRC;
 				document.querySelector('#casino-game-title-txt').innerHTML = data.txt;
 				break;
 			case 'bet-afford-check': //check if bet exceeds current muffinCount
@@ -805,16 +811,16 @@ window.addEventListener('message', (msg) => {//evaluate messages from iframes (c
 					default: throw new Error(`invalid faction: ${data.faction}`);
 				}
 				if (bool) gameData.muffinCount -= (data.faction != 'spinner') ? Number(data.val) : Number(data.val.inputBet);
-				casinoIframe.contentWindow.postMessage(JSON.stringify({purpose: 'bet-afford-check-response', bool: bool, val: data.val, src: data.src}), '*');
+				document.querySelector('#casino-iframe').contentWindow.postMessage(JSON.stringify({purpose: 'bet-afford-check-response', bool: bool, val: data.val, src: data.src}), '*');
 				break;
 			case 'game-start': casinoGameActive = true; break; //lock modal if game is active
 			case 'cash-out': //add proceedings to muffinCount
-				gameData.muffinCount += data.val;
+				gameData.muffinCount += Number(data.val);
 				casinoGameActive = false;
 				SaveFile.write(JSON.stringify(gameData))
 				document.querySelector('#casino-game-title-txt').innerHTML = '';
-				casinoIframe.src = '';
-				casinoModal.close();
+				document.querySelector('#casino-iframe').src = '';
+				document.querySelector('.casino-modal').close();
 				muffinCounterMsgDisplayer(data.val);
 				break;
 			default: throw new Error(`invalid purpose: ${data.purpose}`);
@@ -822,29 +828,24 @@ window.addEventListener('message', (msg) => {//evaluate messages from iframes (c
 	} else if (data.origin == 'arcade') {//recieve data from arcade
 		switch (data.purpose) {
 			case 'change-SRC': //change arcade iframe source file address
-				arcadeIframe.src = data.newSRC;
-				arcadeModal.querySelector('.arcade-modal-title').innerHTML = String(data.newSRC).split('/')[3].replace('-', ' ');
+				document.querySelector('#arcade-iframe').src = data.newSRC;
+				document.querySelector('#arcade-modal').querySelector('.arcade-modal-title').innerHTML = String(data.newSRC).split('/')[3].replace('-', ' ');
+				break;
+			case 'game-start': arcadeGameActive = true; break; //lock modal if game is active
+			case 'cash-out': //add proceedings to arcade.tickets | save to cache to be read later
+				gameData.arcade.tickets += Number(data.val);
+				arcadeGameActive = false;
+				Cache.write('arcade-tickets-earned', data.val, 5000);
+				SaveFile.write(JSON.stringify(gameData));
+				document.querySelector('.arcade-modal-title').innerHTML = 'Arcade';
+				document.querySelector('#arcade-iframe').src = './assets/arcade/game-selector/gameSelector.html';
+				break;
+			case 'read-tickets-cache': //return tickets earned cache request
+				document.querySelector('#arcade-iframe').contentWindow.postMessage(JSON.stringify({purpose: 'tickets-cache-data', val: Cache.read('arcade-tickets-earned')}), '*');
 				break;
 			default: throw new Error(`invalid purpose: ${data.purpose}`);
 		}
 	} else throw new Error(`invalid origin: ${data.origin}`);
-});
-	//arcade system
-const arcadeModal = document.querySelector('#arcade-modal');
-const arcadeIframe = document.querySelector('#arcade-iframe');
-
-document.querySelector('#open-arcade').addEventListener('click', () => {//open arcade modal
-	document.querySelector('#open-arcade').style.border = 'outset';
-	arcadeModal.showModal();
-	arcadeIframe.src = './assets/arcade/game-selector/gameSelector.html';
-});
-
-document.querySelectorAll('#arcade-modal-close-btn').forEach((bin) => {//close arcade modal
-	bin.addEventListener('click', () => {
-		arcadeModal.querySelector('.arcade-modal-title').innerHTML = 'Arcade';
-		document.querySelector('.arcade-modal-footer > .arcade-modal-close-btn').style.border = 'outset';
-		arcadeModal.close();
-	});
 });
 	//save transfer system
 function stringEncrypter(str = '', method = 'encode', register = 16) {//converts ascii to hex and vice versa

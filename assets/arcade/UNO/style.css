@@ -115,6 +115,10 @@ html, body {
 	margin: 5px 0;
 }
 
+.modal-inputs > p > input[type="checkbox"] {
+	cursor: pointer;
+}
+
 .game-start-btn {
 	font-size: 20px;
 	transform: translateX(-50%);
@@ -262,4 +266,161 @@ html, body {
 	position: absolute;
 	top: 65%;
 	right: 45px;
+}
+
+#game-over-modal {
+	height: 40vh;
+	width: 40vw;
+	user-select: none;
+	background-color: white;
+	border-radius: 15px;
+	border: 2px solid black;
+	position: relative;
+}
+
+#game-over-modal > .inputs-container {
+	width: 90%;
+	display: flex;
+	justify-content: space-around;
+	position: absolute;
+	bottom: 20px;
+}
+
+#game-over-modal > .inputs-container > .cash-out-btn {
+	position: relative;
+	cursor: pointer;
+	--width: 0px;
+}
+
+#game-over-modal > .inputs-container > .cash-out-btn::before {
+	content: '';
+	height: 2px;
+	width: var(--width);
+	transition: 150ms;
+	background-color: rgb(43, 111, 153);
+	transform: translateX(-50%);
+	position: absolute;
+	left: 50%;
+	top: 100%;
+}
+
+#game-over-modal > .inputs-container > .cash-out-btn:hover {
+	--width: 80px;
+}
+
+#game-over-modal > .inputs-container > .play-again-btn {
+	position: relative;
+	cursor: pointer;
+	--width: 0px;
+}
+
+#game-over-modal > .inputs-container > .play-again-btn::before {
+	content: '';
+	height: 2px;
+	width: var(--width);
+	transition: 150ms;
+	background-color: rgb(43, 111, 153);
+	transform: translateX(-50%);
+	position: absolute;
+	left: 50%;
+	top: 100%;
+}
+
+#game-over-modal > .inputs-container > .play-again-btn:hover {
+	--width: 90px;
+}
+
+.winner-txt {
+	margin: 0;
+	font-size: 25px;
+	text-decoration: underline;
+	text-align: center;
+}
+
+.results-txt {
+	margin: 0;
+	font-size: 20px;
+	transform: translate(-50%, -50%);
+	position: absolute;
+	left: 50%;
+	top: 50%;
+}
+
+.results-txt > img {
+	transform: translate(50%, 25%) scale(2);
+	image-rendering: pixelated;
+}
+
+.results-txt > .sub-script {
+	font-size: 15px;
+}
+
+.total-tickets-earned {
+	visibility: hidden;
+	margin: 0;
+	font-size: 20px;
+	position: absolute;
+	top: 0;
+	left: 10px;
+}
+
+.total-tickets-earned > img {
+	transform: translate(25%, 25%) scale(2);
+	image-rendering: pixelated;
+}
+
+.swap-effect {
+	image-rendering: pixelated;
+	transform: translate(-50%, -50%) scale(3);
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	animation: swap-icon-spin 500ms linear;
+}
+
+@keyframes swap-icon-spin {
+	0% {
+		transform: translate(-50%, -50%) scale(3) rotate(0deg);
+	}
+	50% {
+		transform: translate(-50%, -50%) scale(5) rotate(180deg);
+	}
+	100% {
+		transform: translate(-50%, -50%) scale(3) rotate(360deg);
+	}
+}
+
+.draw-effect {
+	--direction: 100%;
+	margin: 0;
+	font-size: 60px;
+	text-shadow: -2px 0 rgb(255, 255, 255), 0 2px rgb(255, 255, 255), 2px 0 rgb(255, 255, 255), 0 -2px rgb(255, 255, 255);
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	animation: draw-icon-effect 1s linear;
+}
+
+@keyframes draw-icon-effect {
+	0% {
+		transform: translate(-50%, -50%) scale(1);
+		opacity: 100%;
+	}
+	50% {
+		transform: translate(-50%, -50%) scale(1.1);
+		opacity: 100%;
+	}
+	80% {
+		transform: translate(-50%, -50%) scale(1);
+		opacity: 100%;
+	}
+	90% {
+		transform: translate(-50%, var(--direction)) scale(1);
+		opacity: 100%;
+	}
+	100% {
+		transform: translate(-50%, var(--direction)) scale(1);
+		opacity: 0%;
+	}
 }
