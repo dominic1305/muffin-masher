@@ -175,21 +175,12 @@ html, body {
 	text-align: center;
 }
 
-.QTE > .QTE-progress-bar-container {
-	margin: 0;
-	height: 15px;
-	width: 100px;
-	overflow: hidden;
-	border: 2px solid black;
-	border-radius: 5px;
-}
-
 .QTE-progress-bar {
-	display: block;
-	height: 14px;
-	width: 0%;
-	background-color: rgba(43, 111, 153, 1);
-	transform: translateY(5%);
+	height: 20px;
+	width: 100px;
+	transform: translateX(-50%);
+	position: relative;
+	left: 50%;
 }
 
 .wild-picker-backdrop {

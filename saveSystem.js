@@ -76,7 +76,7 @@ void function saveRetrieve() {//loads save file if one is found
 		document.querySelector('#cost-redux-level').innerHTML = `${Math.round(gameData.prestigeSys.costRedux.amount * 100)}%`;
 		document.querySelector('#cost-redux-cost').innerHTML = `${suffixApplier(gameData.prestigeSys.costRedux.cost)} pts`;
 		gameData.skins = temp.skins.map((bin) => {
-			return new SkinItem(bin.IMG, bin.lockState, bin.id, bin.currentSkin, bin.cost).display();
+			return new SkinItem(bin.imgAddress, bin.lockState, bin.id, bin.currentSkin, bin.cost).display();
 		});
 		gameData.prestigeSys.clock.mins = temp.prestigeSys.clock.mins;
 		gameData.prestigeSys.clock.secs = temp.prestigeSys.clock.secs;

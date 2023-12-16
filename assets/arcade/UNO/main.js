@@ -91,6 +91,7 @@ const cards = Object.freeze({
 let drawPile = createDrawPile();
 let userHand = [new Card()].filter(() => false);
 let AiHand = [new Card()].filter(() => false);
+let cardHistory = [new Card()].filter(() => false);
 let gameOver = false;
 const gameRules = {
 	drawToPlay: false,
@@ -162,7 +163,7 @@ function searchCard(handArr, val, colour, type) {//returns card object in hand b
 }
 
 function addCardToUser(drawTimes = 1, callBack = false) {//draw card to users hand
-	if (!playerTurn && callBack) return;
+	if ((!playerTurn && callBack) || gameOver) return;
 	for (let i = 0; i < drawTimes; i++) {//NOTE: any changes to this function must also be made to 'switchHands'
 		if (Number(document.querySelector('.user-hand-counter').innerHTML) >= 64) break;
 		const card = drawCard(false);
@@ -175,6 +176,7 @@ function addCardToUser(drawTimes = 1, callBack = false) {//draw card to users ha
 			if (!card.isValid || !playerTurn || gameOver) return;
 			playerMoveCounter.next();
 			currentCard = card;
+			manageCardHistory(card);
 			document.querySelector('.current-card').src = currentCard.img;
 			userHand[userHand.indexOf(card)] = null;
 			userHand = userHand.filter(bin => bin instanceof Card);
@@ -244,7 +246,7 @@ async function moveAssess(Ai, move) {//completes global actions after a move has
 					setTimeout(() => {
 						const cardToPLay = AiHand.filter(bin => String(bin.val).includes('draw')).pickRandom();
 						currentCard = cardToPLay;
-						sessionStorage.setItem('cards_to_pickup', Number(sessionStorage.getItem('cards_to_pickup')) + ((currentCard.val == 'wild-draw') ? 4 : 2));
+						manageCardHistory(cardToPLay);
 						document.querySelector('.current-card').src = currentCard.img;
 						AiHand[AiHand.indexOf(cardToPLay)] = null;
 						AiHand = AiHand.filter(bin => bin instanceof Card);
@@ -254,10 +256,8 @@ async function moveAssess(Ai, move) {//completes global actions after a move has
 						moveAssess(true, 'played card');
 					}, Math.floor(Math.random() * (500 - 350) + 350));
 				} else {//Ai cannot counter | add cards to Ai hand
-					sessionStorage.setItem('cards_to_pickup', Number(sessionStorage.getItem('cards_to_pickup')) + ((currentCard.val == 'wild-draw') ? 4 : 2));
-					addCardToAi((sessionStorage.getItem('cards_to_pickup') == null) ? ((currentCard.val == 'wild-draw') ? 4 : 2) : Number(sessionStorage.getItem('cards_to_pickup')));
+					addCardToAi(manageCardHistory());
 					effectEngine('draw', {userDirection: false});
-					sessionStorage.removeItem('cards_to_pickup');
 					switchTurn('user');
 				}
 			} else switchTurn('Ai');
@@ -266,7 +266,7 @@ async function moveAssess(Ai, move) {//completes global actions after a move has
 				setTimeout(() => {
 					const cardToPLay = AiHand.filter(bin => String(bin.val).includes('draw')).pickRandom();
 					currentCard = cardToPLay;
-					sessionStorage.setItem('cards_to_pickup', Number(sessionStorage.getItem('cards_to_pickup')) + ((currentCard.val == 'wild-draw') ? 4 : 2));
+					manageCardHistory(cardToPLay);
 					document.querySelector('.current-card').src = currentCard.img;
 					AiHand[AiHand.indexOf(cardToPLay)] = null;
 					AiHand = AiHand.filter(bin => bin instanceof Card);
@@ -276,10 +276,8 @@ async function moveAssess(Ai, move) {//completes global actions after a move has
 					moveAssess(true, 'played card');
 				}, Math.floor(Math.random() * (500 - 350) + 350));
 			} else {//Ai cannot counter | add cards to Ai hand
-				sessionStorage.setItem('cards_to_pickup', Number(sessionStorage.getItem('cards_to_pickup')) + ((currentCard.val == 'wild-draw') ? 4 : 2));
-				addCardToAi((sessionStorage.getItem('cards_to_pickup') == null) ? ((currentCard.val == 'wild-draw') ? 4 : 2) : Number(sessionStorage.getItem('cards_to_pickup')));
+				addCardToAi(manageCardHistory());
 				effectEngine('draw', {userDirection: false});
-				sessionStorage.removeItem('cards_to_pickup');
 				switchTurn('user');
 			}
 		} else if (move == 'drew card') {//player picked up a card with draw to play enabled
@@ -303,15 +301,12 @@ async function moveAssess(Ai, move) {//completes global actions after a move has
 					switchTurn('user');
 					await runQTE('Counter Draw Card', 5000).then(() => {
 						if (initLength != userHand.length) {//user countered
-							sessionStorage.setItem('cards_to_pickup', Number(sessionStorage.getItem('cards_to_pickup')) + ((currentCard.val == 'wild-draw') ? 4 : 2));
 							moveAssess(false, 'played card');
 						} else {addCardToUser((currentCard.val == 'wild-draw') ? 4 : 2, false); switchTurn('user');}
 					}).catch(err => console.error(err));
 				} else {//user cannot counter | add cards to user hand
-					sessionStorage.setItem('cards_to_pickup', Number(sessionStorage.getItem('cards_to_pickup')) + ((currentCard.val == 'wild-draw') ? 4 : 2));
-					addCardToUser((sessionStorage.getItem('cards_to_pickup') == null) ? ((currentCard.val == 'wild-draw') ? 4 : 2) : Number(sessionStorage.getItem('cards_to_pickup')), false);
+					addCardToUser(manageCardHistory(), false);
 					effectEngine('draw', {userDirection: true});
-					sessionStorage.removeItem('cards_to_pickup');
 					switchTurn('Ai');
 				}
 			} else switchTurn('user');
@@ -321,15 +316,12 @@ async function moveAssess(Ai, move) {//completes global actions after a move has
 				switchTurn('user');
 				await runQTE('Counter Draw Card', 5000).then(() => {
 					if (initLength != userHand.length) {//user countered
-						sessionStorage.setItem('cards_to_pickup', Number(sessionStorage.getItem('cards_to_pickup')) + ((currentCard.val == 'wild-draw') ? 4 : 2));
 						moveAssess(false, 'played card');
 					} else {addCardToUser((currentCard.val == 'wild-draw') ? 4 : 2, false); switchTurn('user');}
 				}).catch(err => console.error(err));
 			} else {//user cannot counter | add cards to user hand
-				sessionStorage.setItem('cards_to_pickup', Number(sessionStorage.getItem('cards_to_pickup')) + ((currentCard.val == 'wild-draw') ? 4 : 2));
-				addCardToUser((sessionStorage.getItem('cards_to_pickup') == null) ? ((currentCard.val == 'wild-draw') ? 4 : 2) : Number(sessionStorage.getItem('cards_to_pickup')), false);
+				addCardToUser(manageCardHistory(), false);
 				effectEngine('draw', {userDirection: true});
-				sessionStorage.removeItem('cards_to_pickup');
 				switchTurn('Ai');
 			}
 		} else if ((currentCard.val == 'reverse' || currentCard.val == 'skip') && move == 'played card') switchTurn('Ai'); //skip user turn
@@ -358,6 +350,7 @@ function playAiMove() {//makes the Ai take their turn
 		const validCards = AiHand.filter(bin => bin.isValid);
 		const cardToPLay = validCards.filter(bin => bin.colour == validCards.map(bin => bin.colour).filter(bin => bin != 'black').mode()).pickRandom() ?? validCards.filter(bin => bin.colour == 'black').pickRandom();
 		currentCard = cardToPLay;
+		manageCardHistory(cardToPLay);
 		document.querySelector('.current-card').src = currentCard.img;
 		AiHand[AiHand.indexOf(cardToPLay)] = null;
 		AiHand = AiHand.filter(bin => bin instanceof Card);
@@ -389,6 +382,7 @@ function switchHands() {
 			if (!card.isValid || !playerTurn) return;
 			playerMoveCounter.next();
 			currentCard = card;
+			manageCardHistory(card);
 			document.querySelector('.current-card').src = currentCard.img;
 			userHand[userHand.indexOf(card)] = null;
 			userHand = userHand.filter(bin => bin instanceof Card);
@@ -454,9 +448,9 @@ function runQTE(title = 'demo', expireTime = 1000) {//execute QTE event
 		let counter = 0;
 		const initLength = userHand.length;
 		const interval = setInterval(() => {//progress animation
-			document.querySelector('.QTE-progress-bar').style.width = `${counter}%`;
+			document.querySelector('.QTE-progress-bar').value = counter;
 			counter++;
-			if (counter >= 100 || initLength != userHand.length) {//animation is done | user countered
+			if (counter >= 100 || initLength != userHand.length) {//animation is done | user action occurred
 				document.body.removeChild(document.querySelector('.QTE'));
 				clearInterval(interval);
 				return resolve('expire complete');
@@ -483,7 +477,7 @@ function runWildPicker() {//execute wild picker event
 	});
 }
 
-function getTicketAmount() {//mutates totalTickets!
+function getTicketAmount() {//NOTE: mutates totalTickets
 	const ticketsToAdd = Math.round(playerMoveCounter.next('read').value * (Math.random() * (1.75 - 1.25) + 1.25));
 	totalTickets += ticketsToAdd;
 	return ticketsToAdd;
@@ -492,7 +486,8 @@ function getTicketAmount() {//mutates totalTickets!
 document.querySelector('.play-again-btn').addEventListener('click', () => {//reset game
 	playerMoveCounter.next('reset');
 	AiMoveCounter.next('reset');
-	sessionStorage.removeItem('cards_to_pickup');
+	gameOver = false;
+	cardHistory = cardHistory.filter(() => false);
 	document.querySelector('.total-tickets-earned').innerHTML = `${totalTickets}<span class="sub-script">x</span> <img src="./img/arcade-ticket.png">`;
 	if (totalTickets > 0) document.querySelector('.total-tickets-earned').style.visibility = 'visible';
 	userHand = userHand.filter(() => false); //reset user hand
@@ -525,9 +520,22 @@ function effectEngine(effect, {userDirection = true} = {userDirection: true}) {/
 	} else if (effect == 'draw') {
 		const element = document.createElement('p');
 		element.className = 'draw-effect';
-		element.innerHTML = `+${(sessionStorage.getItem('cards_to_pickup') == null) ? ((currentCard.val == 'wild-draw') ? 4 : 2) : Number(sessionStorage.getItem('cards_to_pickup'))}`;
+		element.innerHTML = `+${manageCardHistory()}`;
 		element.style.setProperty('--direction', (userDirection) ? '200%' : '-275%');
 		document.body.appendChild(element);
 		setTimeout(() => document.body.removeChild(element), parseFloat(window.getComputedStyle(element).animation.split(' ')[0]) * 1000);
 	} else throw new Error(`invalid effect: ${effect}`);
+}
+
+function manageCardHistory(newCard) {
+	if (newCard instanceof Card) {//add card to history
+		if (cardHistory.push(newCard) > 20) cardHistory.shift();
+	} else {//return number of cards to add in draw card sequence
+		const temp = [new Card()].filter(() => false);
+		for (const card of cardHistory.toReversed()) {//create last draw card sequence
+			if (String(card.val).includes('draw')) temp.push(card);
+			else break;
+		}
+		return temp.map(bin => (bin.val == 'wild-draw') ? 4 : 2).reduce((bin, count) => bin + count, 0);
+	}
 }

@@ -119,8 +119,8 @@ class Producer extends BaseProducer {
 }
 
 class SkinItem {
-	constructor(img, lockState, id, currentSkin, cost) {
-		this.IMG = img;
+	constructor(imgAddress, lockState, id, currentSkin, cost) {
+		this.imgAddress = imgAddress;
 		this.lockState = lockState;
 		this.id = id;
 		this.currentSkin = currentSkin;
@@ -131,7 +131,7 @@ class SkinItem {
 		return document.getElementById(this.id);
 	}
 	get img() {//return skin image file address
-		return `./img/${this.IMG}.png`;
+		return `./img/${this.imgAddress}.png`;
 	}
 	get skinPaymentMethod() {
 		return new Promise((resolve, reject) => {
@@ -216,29 +216,6 @@ document.querySelector('#close-skins').addEventListener('click', () => {//hide s
 	document.querySelector('#skin-modal').close()
 	document.querySelector('#close-skins').style.border = 'outset';
 });
-
-class Cache {
-	static write(key, value, expiry) {
-		const date = new Date();
-		date.setTime(date.valueOf() + expiry);
-		document.cookie = `${key}=${value};expires=${date.toUTCString()};path=/`;
-	}
-	static read(key, remove = true) {
-		try {
-			const value = document.cookie.split(' ').filter(bin => bin.split('=')[0] == key)[0].split('=')[1];
-			if (remove) this.remove(key);
-			return value;
-		} catch {
-			return null;
-		}
-	}
-	static remove(key) {
-		document.cookie = `${key}=;expires=${new Date().toUTCString()}`;
-	}
-	static clear() {
-		document.cookie.split(' ').forEach(bin => document.cookie = `${bin.split('=')[0]}=;expires=${new Date().toUTCString()}`);
-	}
-}
 
 let gameData = {
 	versionID: 'V0.7.6', //NOTE: to be updated on new version release
@@ -835,13 +812,14 @@ window.addEventListener('message', (msg) => {//evaluate messages from iframes (c
 			case 'cash-out': //add proceedings to arcade.tickets | save to cache to be read later
 				gameData.arcade.tickets += Number(data.val);
 				arcadeGameActive = false;
-				Cache.write('arcade-tickets-earned', data.val, 5000);
+				sessionStorage.setItem('arcade-tickets-earned', data.val);
 				SaveFile.write(JSON.stringify(gameData));
 				document.querySelector('.arcade-modal-title').innerHTML = 'Arcade';
 				document.querySelector('#arcade-iframe').src = './assets/arcade/game-selector/gameSelector.html';
 				break;
 			case 'read-tickets-cache': //return tickets earned cache request
-				document.querySelector('#arcade-iframe').contentWindow.postMessage(JSON.stringify({purpose: 'tickets-cache-data', val: Cache.read('arcade-tickets-earned')}), '*');
+				document.querySelector('#arcade-iframe').contentWindow.postMessage(JSON.stringify({purpose: 'tickets-cache-data', val: sessionStorage.getItem('arcade-tickets-earned')}), '*');
+				sessionStorage.removeItem('arcade-tickets-earned');
 				break;
 			default: throw new Error(`invalid purpose: ${data.purpose}`);
 		}
