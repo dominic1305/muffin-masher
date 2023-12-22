@@ -1,0 +1,26 @@
+html, body {
+	margin:  0;
+	font-family: sans-serif;
+}
+
+.wrapper {
+	position: relative;
+	height: 100vh;
+	width: 100vw;
+}
+
+#player {
+	image-rendering: pixelated;
+	transform: translate(-50%, -50%) scale(2);
+	position: absolute;
+}
+
+.fps-counter {
+	position: absolute;
+	left: 5px;
+	top: 5px;
+	font-weight: bolder;
+	padding: 2px 5px;
+	color: rgba(0, 255, 0, 0.5);
+	background-color: rgba(0, 0, 0, 0.25);
+}
