@@ -14,7 +14,7 @@ export default class Entity {
 		const angle = Math.round(Math.atan2(values[1], values[0]) * (180 / Math.PI));
 		return ((angle < 0) ? angle + 360 : angle) % 360;
 	}
-	/**@returns {1 | 2 | 3 | 4} */
+	/**@returns {1 | 2 | 3 | 4}*/
 	get directionSector() {
 		return Math.ceil(this.degrees / 90) || 1;
 	}
@@ -28,9 +28,9 @@ export default class Entity {
 				case 270: return 0; //west
 				default: throw new Error('invalid direction');
 			}
-		} else if ((this.degrees < 360 && this.degrees > 270) || (this.degrees < 180 && this.degrees > 90)) {//angles 2 or 4
+		} else if ((this.degrees < 360 && this.degrees > 270) || (this.degrees < 180 && this.degrees > 90)) {//quadrant 2 or 4
 			return angle;
-		} else if ((this.degrees < 90 && this.degrees > 0) || (this.degrees < 270 && this.degrees > 180)) {//angles 1 or 3
+		} else if ((this.degrees < 90 && this.degrees > 0) || (this.degrees < 270 && this.degrees > 180)) {//quadrant 1 or 3
 			return 90 - angle;
 		} else return angle;
 	}
@@ -48,6 +48,10 @@ export default class Entity {
 	}
 	get boundingBox() {
 		return this.element.getBoundingClientRect();
+	}
+	get inBounds() {
+		const rect = this.boundingBox;
+		return rect.top >= 0 && rect.left >= 0 && rect.bottom <= document.querySelector('.wrapper').clientHeight && rect.right <= document.querySelector('.wrapper').clientWidth;
 	}
 	move() {
 		this.element.style.left = `${this.position.x + this.vector.x}px`;
