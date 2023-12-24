@@ -1,17 +1,24 @@
 import Entity from "./Entity.js";
+import { player } from "./main.js";
 
 export default class Asteroid extends Entity {
 	static asteroidArr = [new Asteroid()].filter(() => false);
 	#inPlay = false;
 	static #width = 39;
-	static #maxAsteroids = 10;
-	/**@param {string} elementID @param {number} velocity @param {number} direction*/
+	static #maxAsteroids = 20;
+	static #spawnTimer = 0;
+	static #timerMax = 40;
+	#collisions = 0;
+	/**@private @param {string} elementID @param {number} velocity @param {number} direction*/
 	constructor(elementID, velocity, direction) {
 		super(elementID, velocity);
 		this.direction = direction;
 	}
-	static spawnAsteroid() {//initiate new asteroid object
-		if (Asteroid.asteroidArr.length >= Asteroid.#maxAsteroids) return; //too many asteroids
+	static spawn() {//initiate new asteroid object
+		Asteroid.#spawnTimer++;
+		if (Asteroid.asteroidArr.length >= Asteroid.#maxAsteroids || Asteroid.#spawnTimer <= Asteroid.#timerMax) return; //too many asteroids | asteroid was spawn in last few frames
+		Asteroid.#spawnTimer = 0;
+
 		const element = document.createElement('img');
 		element.src = './img/asteroid.png';
 		element.className = 'asteroid';
@@ -19,9 +26,7 @@ export default class Asteroid extends Entity {
 
 		const startX = (Math.floor(Math.random() * 1000) % 2 == 0) ? 0 - Asteroid.#width : document.body.clientWidth + Asteroid.#width;
 		const startY = Math.floor(Math.random() * document.body.clientHeight);
-		const endX = (startX < 0) ? document.body.clientWidth + Asteroid.#width : 0 - Asteroid.#width;
-		const endY = Math.floor(Math.random() * document.body.clientHeight);
-		const degrees = Asteroid.#getDirection(startX, startY, endX, endY);
+		const degrees = Asteroid.#getDirection(startX, startY, (startX < 0) ? document.body.clientWidth + Asteroid.#width : 0 - Asteroid.#width, Math.floor(Math.random() * document.body.clientHeight));
 
 		element.style.top = `${startY}px`;
 		element.style.left = `${startX}px`;
@@ -42,14 +47,20 @@ export default class Asteroid extends Entity {
 		const angle = (Math.atan2(endY - startY, endX - startX) * (180 / Math.PI)) + 90;
 		return (angle < 0) ? angle + 360 : angle;
 	}
+	get playerCollision() {
+		const playerBoundary = player.boundingBox;
+		const entityBoundary = this.boundingBox;
+		return !(entityBoundary.top > playerBoundary.bottom || entityBoundary.right < playerBoundary.left || entityBoundary.bottom < playerBoundary.top || entityBoundary.left > playerBoundary.right);
+	}
 	dispose() {
-		Asteroid.asteroidArr[Asteroid.asteroidArr.indexOf(this)] = null;
-		Asteroid.asteroidArr = Asteroid.asteroidArr.filter(bin => bin instanceof Asteroid);
+		Asteroid.asteroidArr.splice(Asteroid.asteroidArr.indexOf(this), 1);
 		document.querySelector('.wrapper').removeChild(this.element);
 	}
 	move() {
 		if (!this.#inPlay && this.inBounds) this.#inPlay = true;
-		if (this.#inPlay && !this.inBounds) return this.dispose();
+		else if (this.#inPlay && !this.inBounds) return this.dispose();
 		super.move();
+		if (this.playerCollision) this.#collisions++;
+		if (this.#collisions >= 10) throw new Error('collison with player');
 	}
 }

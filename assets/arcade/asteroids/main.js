@@ -4,7 +4,7 @@ import Asteroid from "./Asteroid.js";
 
 export let asteroidArr = [new Asteroid()].filter(() => false);
 
-const player = SpaceShip.getSpaceShip('player', 6, 4);
+export const player = SpaceShip.getSpaceShip('player', 6, 4);
 
 let TIME;
 requestAnimationFrame(function loop(time) {
@@ -16,9 +16,8 @@ requestAnimationFrame(function loop(time) {
 		//actionable code
 		player.move();
 		player.rotate();
-		Asteroid.spawnAsteroid();
+		Asteroid.spawn();
 		for (const asteroid of Asteroid.asteroidArr) {
-			if (asteroid == null) continue; //asteroid is being removed
 			asteroid.move();
 		}
 	}
