@@ -1,7 +1,6 @@
-import Entity from "./Entity.js";
-import Bullet from "./Bullet.js";
+"use strict";
 
-export default class SpaceShip extends Entity {
+class SpaceShip extends Entity {
 	#activeKeys = {
 		W: false,
 		A: false,

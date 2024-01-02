@@ -1,8 +1,7 @@
-import Entity from "./Entity.js";
-import { player } from "./main.js";
+"use strict";
 
-export default class Asteroid extends Entity {
-	static asteroidArr = [new Asteroid()].filter(() => false);
+class Asteroid extends Entity {
+	static instanceArr = [new Asteroid()].filter(() => false);
 	#inPlay = false;
 	static #width = 39;
 	static #maxAsteroids = 20;
@@ -16,7 +15,7 @@ export default class Asteroid extends Entity {
 	}
 	static spawn() {//initiate new asteroid object
 		Asteroid.#spawnTimer++;
-		if (Asteroid.asteroidArr.length >= Asteroid.#maxAsteroids || Asteroid.#spawnTimer <= Asteroid.#timerMax) return; //too many asteroids | asteroid was spawn in last few frames
+		if (Asteroid.instanceArr.length >= Asteroid.#maxAsteroids || Asteroid.#spawnTimer <= Asteroid.#timerMax) return; //too many asteroids | asteroid was spawn in last few frames
 		Asteroid.#spawnTimer = 0;
 
 		const element = document.createElement('img');
@@ -35,7 +34,7 @@ export default class Asteroid extends Entity {
 		document.querySelector('.wrapper').appendChild(element);
 
 		const asteroid = new Asteroid(element.id, Math.random() * (5 - 2) + 2, degrees);
-		Asteroid.asteroidArr.push(asteroid);
+		Asteroid.instanceArr.push(asteroid);
 	}
 	get inBounds() {
 		const DOMRect = document.body.getBoundingClientRect();
@@ -53,7 +52,7 @@ export default class Asteroid extends Entity {
 		return !(entityBoundary.top > playerBoundary.bottom || entityBoundary.right < playerBoundary.left || entityBoundary.bottom < playerBoundary.top || entityBoundary.left > playerBoundary.right);
 	}
 	dispose() {
-		Asteroid.asteroidArr.splice(Asteroid.asteroidArr.indexOf(this), 1);
+		Asteroid.instanceArr.splice(Asteroid.instanceArr.indexOf(this), 1);
 		document.querySelector('.wrapper').removeChild(this.element);
 	}
 	move() {

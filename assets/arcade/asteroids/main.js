@@ -1,11 +1,8 @@
-import Entity from "./Entity.js";
-import SpaceShip from "./SpaceShip.js";
-import Asteroid from "./Asteroid.js";
-import Bullet from "./Bullet.js";
+"use strict";
 
-export let asteroidArr = [new Asteroid()].filter(() => false);
+let asteroidArr = [new Asteroid()].filter(() => false);
 
-export const player = SpaceShip.spawn('player', 5, 4, 50);
+const player = SpaceShip.spawn('player', 5, 4, 50);
 
 let TIME;
 requestAnimationFrame(function loop(time) {
@@ -17,10 +14,10 @@ requestAnimationFrame(function loop(time) {
 		//actionable code
 		player.move();
 		Asteroid.spawn();
-		for (const asteroid of Asteroid.asteroidArr) {
+		for (const asteroid of Asteroid.instanceArr) {
 			asteroid.move();
 		}
-		for (const bullet of Bullet.bulletArr) {
+		for (const bullet of Bullet.instanceArr) {
 			bullet.move();
 		}
 	}

@@ -1,5 +1,7 @@
+"use strict";
+
 /**@abstract*/
-export default class Entity {
+class Entity {
 	/**@param {string} elementID @param {number} velocity*/
 	constructor(elementID, velocity) {
 		this.elementID = elementID;

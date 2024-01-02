@@ -1,8 +1,7 @@
-import Entity from "./Entity.js";
-import Asteroid from "./Asteroid.js";
+"use strict";
 
-export default class Bullet extends Entity {
-	static bulletArr = [new Bullet()].filter(() => false);
+class Bullet extends Entity {
+	static instanceArr = [new Bullet()].filter(() => false);
 	/**@private @param {string} elementID @param {number} velocity*/
 	constructor(elementID, velocity) {
 		super(elementID, velocity);
@@ -21,7 +20,7 @@ export default class Bullet extends Entity {
 		document.querySelector('.wrapper').appendChild(element);
 
 		const bullet = new Bullet(element.id, velocity);
-		Bullet.bulletArr.push(bullet);
+		Bullet.instanceArr.push(bullet);
 	}
 	get inBounds() {
 		const DOMRect = document.body.getBoundingClientRect();
@@ -29,7 +28,7 @@ export default class Bullet extends Entity {
 		return !(entityRect.top > DOMRect.bottom || entityRect.right < DOMRect.left || entityRect.bottom < DOMRect.top || entityRect.left > DOMRect.right);
 	}
 	dispose() {//destructor
-		Bullet.bulletArr.splice(Bullet.bulletArr.indexOf(this), 1);
+		Bullet.instanceArr.splice(Bullet.instanceArr.indexOf(this), 1);
 		document.querySelector('.wrapper').removeChild(this.element);
 	}
 	/**@param {Asteroid} target*/
@@ -42,7 +41,7 @@ export default class Bullet extends Entity {
 		} else return false;
 	}
 	move() {
-		if (Asteroid.asteroidArr.some(bin => this.#asteroidCollison(bin)) || !this.inBounds) return this.dispose();
+		if (Asteroid.instanceArr.some(bin => this.#asteroidCollison(bin)) || !this.inBounds) return this.dispose();
 		super.move();
 	}
 }
