@@ -1,6 +1,7 @@
 html, body {
 	margin:  0;
 	font-family: sans-serif;
+	user-select: none;
 }
 
 .background {
@@ -29,6 +30,7 @@ html, body {
 }
 
 #player {
+	z-index: 3;
 	image-rendering: pixelated;
 	transform: translate(-50%, -50%) scale(2);
 	position: absolute;
@@ -47,8 +49,26 @@ html, body {
 }
 
 .asteroid {
+	z-index: 1;
 	image-rendering: pixelated;
 	width: 39px;
 	transform: translate(-50%, -50%);
 	position: absolute;
+}
+
+.bullet {
+	z-index: 2;
+	transform: translate(-50%, -50%) scale(0.5);
+	position: absolute;
+	--direction: 0deg;
+	animation: bullet_ANM 1s ease-in-out infinite alternate;
+}
+
+@keyframes bullet_ANM {
+	0% {
+		transform: translate(-50%, -50%) rotate(var(--direction)) scale(0.5);
+	}
+	100% {
+		transform: translate(-50%, -50%) rotate(var(--direction)) scale(0.6);
+	}
 }
