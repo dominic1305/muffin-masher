@@ -8,16 +8,31 @@
 </head>
 <body>
 
-	<div class="background"></div>
+	<div class="game-start-modal">
+		<p class="game-start-title">Asteroids</p>
+		<div class="game-start-btn">Play</div>
+	</div>
 
-	<div class="fps-counter"></div>
+	<template id="game-over-modal-template">
+		<div class="game-over-modal">
+			<p class="game-over-txt">*temp_onload*</p>
+			<div class="game-over-inputs-container">
+				<div class="game-over-input" id="game-over-play-again" style="--max-width: 80px">Play Again</div>
+				<div class="game-over-input" id="game-over-quit" style="--max-width: 35px">Quit</div>
+			</div>
+		</div>
+	</template>
 
-	<div class="wrapper"></div>
+	<div class="wrapper">
+		<div class="background"></div>
+		<div class="fps-counter"></div>
+		<div class="play-area"></div>
+	</div>
 
-	<script defer src="Entity.js"></script>
-	<script defer src="Asteroid.js"></script>
-	<script defer src="Bullet.js"></script>
-	<script defer src="SpaceShip.js"></script>
+	<script defer src="./Entity.js"></script>
+	<script defer src="./Asteroid.js"></script>
+	<script defer src="./Bullet.js"></script>
+	<script defer src="./SpaceShip.js"></script>
 	<script defer src="./main.js"></script>
 </body>
 </html>

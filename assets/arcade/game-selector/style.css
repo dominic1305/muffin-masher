@@ -111,7 +111,7 @@ html, body {
 }
 
 .new-tickets-modal > p:nth-child(2) > img {
-	transform: translate(20%, 30%) scale(2);
+	transform: translate(70%, 30%) scale(2);
 	image-rendering: pixelated;
 }
 

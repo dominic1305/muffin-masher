@@ -19,22 +19,28 @@ class SpaceShip extends Entity {
 		this.firerate = firerate;
 		this.#shotTimer = firerate * 0.5;
 	}
-	/**@param {string} elementID @param {number} velocity @param {number} rotationalVelocity @param {number} firerate*/
-	static spawn(elementID, velocity, rotationalVelocity, firerate) {
+	/**@param {number} velocity @param {number} rotationalVelocity @param {number} firerate*/
+	static spawn(velocity, rotationalVelocity, firerate) {
 		const element = document.createElement('img');
 		element.src = './img/space-ship.png';
+		element.draggable = false;
 		element.style.left = '50%';
-		element.style.top = '50%';
-		element.id = elementID;
+		element.style.top = '70%';
+		element.className = 'space-ship';
+		element.id = `spaceShip_${Math.random().toString(16).slice(2)}`;
 
-		document.querySelector('.wrapper').appendChild(element);
+		document.querySelector('.play-area').appendChild(element);
 
-		const spaceship = new SpaceShip(elementID, velocity, rotationalVelocity, firerate);
+		const spaceship = new SpaceShip(element.id, velocity, rotationalVelocity, firerate);
 		spaceship.#attachUserControl();
 		return spaceship;
 	}
+	get inBounds() {
+		const rect = this.boundingBox;
+		return rect.top >= 0 && rect.left >= 0 && rect.bottom <= document.querySelector('.wrapper').clientHeight && rect.right <= document.querySelector('.wrapper').clientWidth;
+	}
 	#attachUserControl() {
-		document.addEventListener('keydown', (e) => {//pefrom action on key press
+		document.addEventListener('keydown', (e) => {//perfrom action on key press
 			if (['w', 'a', 's', 'd'].includes(e.key)) this.#activeKeys[e.key.toUpperCase()] = true;
 			switch (e.key) {
 				case 'w': this.velocity = this.#const_Velocity * 1.5; break;
@@ -53,6 +59,10 @@ class SpaceShip extends Entity {
 			}
 		});
 	}
+	dispose() {//destructor
+		document.querySelector('.play-area').removeChild(this.element);
+		player = null;
+	}
 	#rotate() {
 		const newAngle = this.degrees + this.rotationalVelocity;
 		this.element.style.transform = `translate(-50%, -50%) scale(2) rotate(${newAngle}deg)`;
@@ -65,7 +75,7 @@ class SpaceShip extends Entity {
 		Bullet.spawn(this.velocity * 1.5, this.degrees, this.position);
 	}
 	move() {
-		if (!this.inBounds) throw new Error('entity is out of bounds');
+		if (!this.inBounds) return endGameHandler();
 		super.move();
 		this.#rotate();
 		this.#shoot();

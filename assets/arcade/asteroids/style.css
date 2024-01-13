@@ -29,7 +29,14 @@ html, body {
 	width: 100vw;
 }
 
-#player {
+.play-area {
+	height: 100%;
+	width: 100%;
+	position: absolute;
+	top: 0;
+}
+
+.space-ship {
 	z-index: 3;
 	image-rendering: pixelated;
 	transform: translate(-50%, -50%) scale(2);
@@ -71,4 +78,95 @@ html, body {
 	100% {
 		transform: translate(-50%, -50%) rotate(var(--direction)) scale(0.6);
 	}
+}
+
+.game-start-modal {
+	z-index: 5;
+	height: 90vh;
+	width: 90vw;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-direction: column;
+	background-color: white;
+	border: 5px solid black;
+	border-radius: 15px;
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 50%;
+	left: 50%;
+}
+
+.game-start-btn {
+	margin-bottom: 25px;
+	cursor: pointer;
+	position: relative;
+	--width: 0px;
+}
+
+.game-start-btn:hover {
+	--width: 40px;
+}
+
+.game-start-btn::before {
+	content: "";
+	width: var(--width);
+	height: 3px;
+	transition: 100ms;
+	background-color: rgb(32, 90, 127);
+	transform: translateX(-50%);
+	position: absolute;
+	top: 100%;
+	left: 50%;
+}
+
+.game-over-modal {
+	background-color: white;
+	border-radius: 15px;
+	border: 5px solid black;
+	padding: 10px 15px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	transform: translate(-50%, -50%);
+	position: absolute;
+	top: 50%;
+	left: 50%;
+}
+
+.game-over-txt {
+	margin: 0;
+	text-transform: capitalize;
+	font-size: 20px;
+}
+
+.game-over-inputs-container {
+	margin-top: 5px;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: space-between;
+}
+
+.game-over-inputs-container > div {
+	margin: 0 5px;
+	cursor: pointer;
+	position: relative;
+	--width: 0px;
+}
+
+.game-over-inputs-container > div:hover {
+	--width: var(--max-width);
+}
+
+.game-over-inputs-container > div::before {
+	content: '';
+	width: var(--width);
+	height: 3px;
+	transition: 100ms;
+	background-color: rgb(32, 90, 127);
+	transform: translateX(-50%);
+	position: absolute;
+	top: 110%;
+	left: 50%;
 }

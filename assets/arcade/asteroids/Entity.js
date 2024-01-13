@@ -21,18 +21,19 @@ class Entity {
 		return Math.ceil(this.degrees / 90) || 1;
 	}
 	get angle() {
-		const angle = this.degrees % 90;
+		const degrees = this.degrees;
+		const angle = degrees % 90;
 		if (angle == 0) {//is a due angle
-			switch (this.degrees) {
+			switch (degrees) {
 				case 0: return 90; //north
 				case 90: return 0; //east
 				case 180: return 90; //south
 				case 270: return 0; //west
 				default: throw new Error('invalid direction');
 			}
-		} else if ((this.degrees < 360 && this.degrees > 270) || (this.degrees < 180 && this.degrees > 90)) {//quadrant 2 or 4
+		} else if ((degrees < 360 && degrees > 270) || (degrees < 180 && degrees > 90)) {//quadrant 2 or 4
 			return angle;
-		} else if ((this.degrees < 90 && this.degrees > 0) || (this.degrees < 270 && this.degrees > 180)) {//quadrant 1 or 3
+		} else if ((degrees < 90 && degrees > 0) || (degrees < 270 && degrees > 180)) {//quadrant 1 or 3
 			return 90 - angle;
 		} else return angle;
 	}
@@ -52,8 +53,9 @@ class Entity {
 		return this.element.getBoundingClientRect();
 	}
 	get inBounds() {
-		const rect = this.boundingBox;
-		return rect.top >= 0 && rect.left >= 0 && rect.bottom <= document.querySelector('.wrapper').clientHeight && rect.right <= document.querySelector('.wrapper').clientWidth;
+		const DOMRect = document.body.getBoundingClientRect();
+		const entityRect = this.boundingBox;
+		return !(entityRect.top > DOMRect.bottom || entityRect.right < DOMRect.left || entityRect.bottom < DOMRect.top || entityRect.left > DOMRect.right);
 	}
 	move() {
 		this.element.style.left = `${this.position.x + this.vector.x}px`;
