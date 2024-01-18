@@ -16,6 +16,13 @@
 	<template id="game-over-modal-template">
 		<div class="game-over-modal">
 			<p class="game-over-txt">*temp_onload*</p>
+			<div class="game-over-reward-container">
+				<p>You Earned</p>
+				<div class="game-over-reward-container-inner">
+					<p class="game-over-tickets-earned">0x</p>
+					<img src="./img/arcade-ticket.png" alt="ticket" draggable="false">
+				</div>
+			</div>
 			<div class="game-over-inputs-container">
 				<div class="game-over-input" id="game-over-play-again" style="--max-width: 80px">Play Again</div>
 				<div class="game-over-input" id="game-over-quit" style="--max-width: 35px">Quit</div>
@@ -25,7 +32,13 @@
 
 	<div class="wrapper">
 		<div class="background"></div>
-		<div class="fps-counter"></div>
+		<div class="header">
+			<div class="fps-counter"></div>
+			<div class="score-board-container">
+				<div class="score">Score: 0</div>
+				<div class="high-score">High Score: 0</div>
+			</div>
+		</div>
 		<div class="play-area"></div>
 	</div>
 
@@ -33,6 +46,7 @@
 	<script defer src="./Asteroid.js"></script>
 	<script defer src="./Bullet.js"></script>
 	<script defer src="./SpaceShip.js"></script>
+	<script defer src="./ScoreBoardManager.js"></script>
 	<script defer src="./main.js"></script>
 </body>
 </html>

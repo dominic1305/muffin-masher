@@ -39,6 +39,7 @@ class Bullet extends Entity {
 		const targetRect = target.boundingBox;
 		if (!(entityRect.top > targetRect.bottom || entityRect.right < targetRect.left || entityRect.bottom < targetRect.top || entityRect.left > targetRect.right)) {
 			target.dispose();
+			scoreBoard.addToScore(100);
 			return true;
 		} else return false;
 	}

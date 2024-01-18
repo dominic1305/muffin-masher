@@ -2,7 +2,7 @@
 
 /**@abstract*/
 class Entity {
-	/**@param {string} elementID @param {number} velocity*/
+	/**@protected @param {string} elementID @param {number} velocity*/
 	constructor(elementID, velocity) {
 		this.elementID = elementID;
 		this.velocity = velocity;
@@ -12,7 +12,7 @@ class Entity {
 	}
 	get degrees() {
 		const matrix = window.getComputedStyle(this.element).transform;
-		const values = matrix.split('(')[1].split(')')[0].split(',');
+		const values = matrix.split('(')[1].split(')')[0].split(',').map(bin => Number(bin));
 		const angle = Math.round(Math.atan2(values[1], values[0]) * (180 / Math.PI));
 		return ((angle < 0) ? angle + 360 : angle) % 360;
 	}

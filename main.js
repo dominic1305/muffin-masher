@@ -264,6 +264,9 @@ let gameData = {
 	frenzySys: {RNGlimit: 10, timer: 60, countUp: 0, activeState: false, gameState: false},
 	arcade: {
 		tickets: 0,
+		asteroids: {
+			highScore: 0,
+		},
 	},
 };
 
@@ -816,6 +819,13 @@ window.addEventListener('message', (msg) => {//evaluate messages from iframes (c
 				SaveFile.write(JSON.stringify(gameData));
 				document.querySelector('.arcade-modal-title').innerHTML = 'Arcade';
 				document.querySelector('#arcade-iframe').src = './assets/arcade/game-selector/gameSelector.html';
+				break;
+			case 'get-game-data': //return saved arcade game data
+				document.querySelector('#arcade-iframe').contentWindow.postMessage(JSON.stringify({purpose: 'get-game-data-response', gameData: gameData.arcade[data.faction]}), '*');
+				break;
+			case 'save-highscore': //set arcade highscore
+				gameData.arcade[data.faction].highScore = data.val;
+				document.querySelector('#arcade-iframe').contentWindow.postMessage(JSON.stringify({purpose: 'save-highscore-response', val: gameData.arcade[data.faction].highScore}), '*');
 				break;
 			case 'read-tickets-cache': //return tickets earned cache request
 				document.querySelector('#arcade-iframe').contentWindow.postMessage(JSON.stringify({purpose: 'tickets-cache-data', val: sessionStorage.getItem('arcade-tickets-earned')}), '*');
