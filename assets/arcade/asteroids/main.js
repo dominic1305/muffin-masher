@@ -27,7 +27,7 @@ document.querySelector('.game-start-btn').addEventListener('click', async () => 
 	window.parent.postMessage(JSON.stringify({origin: 'arcade', purpose: 'game-start'}), '*');
 	scoreBoard = await ScoreBoardManager.getConnection();
 	gameState = true;
-	player = SpaceShip.spawn(5, 4, 50);
+	player = SpaceShip.spawn(3, 4, 50, 2);
 	document.querySelector('.game-start-modal').style.visibility = 'hidden';
 });
 

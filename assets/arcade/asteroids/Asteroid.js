@@ -1,7 +1,7 @@
 "use strict";
 
 class Asteroid extends Entity {
-	static instanceArr = [new Asteroid()].filter(() => false);
+	/**@type {Asteroid[]}*/ static instanceArr = [];
 	#inPlay = false;
 	static #width = 39;
 	static #maxAsteroids = 20;
@@ -36,7 +36,7 @@ class Asteroid extends Entity {
 
 		document.querySelector('.play-area').appendChild(element);
 
-		const asteroid = new Asteroid(element.id, Math.random() * (5 - 2) + 2, degrees);
+		const asteroid = new Asteroid(element.id, Math.random() * (3 - 2) + 2, degrees);
 		Asteroid.instanceArr.push(asteroid);
 	}
 	/**@param {number} startX @param {number} startY @param {number} endX @param {number} endY*/
@@ -51,6 +51,7 @@ class Asteroid extends Entity {
 		Asteroid.instanceArr.splice(0, Asteroid.instanceArr.length);
 	}
 	get playerCollision() {
+		if (player.IsInvincible) return false;
 		const playerBoundary = player.boundingBox;
 		const entityBoundary = this.boundingBox;
 		return !(entityBoundary.top > playerBoundary.bottom || entityBoundary.right < playerBoundary.left || entityBoundary.bottom < playerBoundary.top || entityBoundary.left > playerBoundary.right);
@@ -64,6 +65,6 @@ class Asteroid extends Entity {
 		else if (this.#inPlay && !this.inBounds) return this.dispose();
 		super.move();
 		if (this.playerCollision) this.#collisions++;
-		if (this.#collisions >= 10) return endGameHandler();
+		if (this.#collisions >= 10) { this.dispose(); return player.takeDamage(); }
 	}
 }

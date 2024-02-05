@@ -23,7 +23,7 @@ class Entity {
 	get angle() {
 		const degrees = this.degrees;
 		const angle = degrees % 90;
-		if (angle == 0) {//is a due angle
+		if (angle == 0) {//is cardinal angle
 			switch (degrees) {
 				case 0: return 90; //north
 				case 90: return 0; //east
