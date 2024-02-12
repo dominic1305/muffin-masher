@@ -30,7 +30,7 @@ class SpaceShip extends Entity {
 		element.draggable = false;
 		element.style.left = '50%';
 		element.style.top = '70%';
-		element.id = `spaceShip_${Math.random().toString(16).slice(2)}`;
+		element.id = `spaceship_${Math.random().toString(16).slice(2)}`;
 		element.classList.add('space-ship');
 		if (shields > 0) element.classList.add('shielded');
 
@@ -63,9 +63,6 @@ class SpaceShip extends Entity {
 		if (return_val == -1) throw new Error('cannot assign animation port address, out of bounds');
 		return return_val;
 	}
-	get IsInvincible() {
-		return this.#invincible;
-	}
 	get inBounds() {
 		const rect = this.boundingBox;
 		return rect.top >= 0 && rect.left >= 0 && rect.bottom <= document.querySelector('.wrapper').clientHeight && rect.right <= document.querySelector('.wrapper').clientWidth;
@@ -81,15 +78,29 @@ class SpaceShip extends Entity {
 			this.element.style.visibility = 'visible';
 		}, timespan));
 	}
-	takeDamage() {
-		if (this.#shields <= 0) return endGameHandler();
+	#takeDamage() {
+		if (this.#shields-- <= 0) return endGameHandler();
 
-		this.#shields--;
 		this.#goInvincible(1000);
-		while (document.querySelector('#space-ship-shields-container').childNodes.length > this.#shields) {
-			document.querySelector('#space-ship-shields-container').removeChild(document.querySelector('#space-ship-shields-container').firstChild);
-		}
+		const element = document.querySelector('#space-ship-shields-container');
+		while (element.childNodes.length > this.#shields) element.removeChild(element.firstChild);
 		if (this.#shields == 0) this.element.classList.remove('shielded');
+	}
+	#checkCollisions () {
+		for (const element of document.querySelectorAll('.play-area > *')) {//search for collidable objects
+			const targetRect = element.getBoundingClientRect();
+			const entityRect = this.boundingBox;
+			if (entityRect.top > targetRect.bottom || entityRect.right < targetRect.left || entityRect.bottom < targetRect.top || entityRect.left > targetRect.right) continue; //collision didn't occur
+
+			switch (element.id.split('_')[0]) {//handle collision
+				case 'asteroid':
+					if (this.#invincible) continue;
+					const asteroid = Asteroid.instanceArr.filter(bin => bin.elementID == element.id)[0];
+					if (asteroid.collide()) return this.#takeDamage();
+					break;
+				default: continue;
+			}
+		}
 	}
 	#attachUserControl() {
 		document.addEventListener('keydown', (e) => {//perfrom action on key press
@@ -133,5 +144,6 @@ class SpaceShip extends Entity {
 		super.move();
 		this.#rotate();
 		this.#shoot();
+		this.#checkCollisions();
 	}
 }

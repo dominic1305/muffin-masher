@@ -1,7 +1,7 @@
 "use strict";
 
 class Bullet extends Entity {
-	static instanceArr = [new Bullet()].filter(() => false);
+	/**@type {Bullet[]}*/static instanceArr = [];
 	/**@private @param {string} elementID @param {number} velocity*/
 	constructor(elementID, velocity) {
 		super(elementID, velocity);

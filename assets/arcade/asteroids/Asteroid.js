@@ -50,11 +50,11 @@ class Asteroid extends Entity {
 		}
 		Asteroid.instanceArr.splice(0, Asteroid.instanceArr.length);
 	}
-	get playerCollision() {
-		if (player.IsInvincible) return false;
-		const playerBoundary = player.boundingBox;
-		const entityBoundary = this.boundingBox;
-		return !(entityBoundary.top > playerBoundary.bottom || entityBoundary.right < playerBoundary.left || entityBoundary.bottom < playerBoundary.top || entityBoundary.left > playerBoundary.right);
+	collide() {
+		if (++this.#collisions >= 10) {
+			this.dispose();
+			return true;
+		} else return false
 	}
 	dispose() {//destructor
 		Asteroid.instanceArr.splice(Asteroid.instanceArr.indexOf(this), 1);
@@ -64,7 +64,5 @@ class Asteroid extends Entity {
 		if (!this.#inPlay && this.inBounds) this.#inPlay = true;
 		else if (this.#inPlay && !this.inBounds) return this.dispose();
 		super.move();
-		if (this.playerCollision) this.#collisions++;
-		if (this.#collisions >= 10) { this.dispose(); return player.takeDamage(); }
 	}
 }
