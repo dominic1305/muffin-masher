@@ -13,10 +13,10 @@ requestAnimationFrame(function loop(time) {
 		player.move();
 		Asteroid.spawn();
 		scoreBoard.updateScoreBoard();
-		for (const asteroid of Asteroid.instanceArr) {
+		for (const asteroid of Asteroid.InstanceArr) {
 			asteroid.move();
 		}
-		for (const bullet of Bullet.instanceArr) {
+		for (const bullet of Bullet.InstanceArr) {
 			bullet.move();
 		}
 	}
@@ -27,7 +27,7 @@ document.querySelector('.game-start-btn').addEventListener('click', async () => 
 	window.parent.postMessage(JSON.stringify({origin: 'arcade', purpose: 'game-start'}), '*');
 	scoreBoard = await ScoreBoardManager.getConnection();
 	gameState = true;
-	player = SpaceShip.spawn(3, 4, 50, 2);
+	player = SpaceShip.spawn(3, 4, 50, 2, 3);
 	document.querySelector('.game-start-modal').style.visibility = 'hidden';
 });
 

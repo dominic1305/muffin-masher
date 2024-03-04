@@ -1,10 +1,13 @@
 "use strict";
 
 class Bullet extends Entity {
-	/**@type {Bullet[]}*/static instanceArr = [];
+	/**@type {Bullet[]}*/static #instanceArr = [];
 	/**@private @param {string} elementID @param {number} velocity*/
 	constructor(elementID, velocity) {
 		super(elementID, velocity);
+	}
+	static get InstanceArr() {
+		return Object.freeze(Bullet.#instanceArr.map(bin => Object.freeze(bin)));
 	}
 	/**@param {number} velocity @param {number} direction @param {{x: number, y: number}} spawnPosition*/
 	static spawn(velocity, direction, spawnPosition) {
@@ -20,17 +23,16 @@ class Bullet extends Entity {
 
 		document.querySelector('.play-area').appendChild(element);
 
-		const bullet = new Bullet(element.id, velocity);
-		Bullet.instanceArr.push(bullet);
+		Bullet.#instanceArr.push(new Bullet(element.id, velocity));
 	}
 	static disposeAll() {
-		for (const bullet of Bullet.instanceArr) {
+		for (const bullet of Bullet.#instanceArr) {
 			document.querySelector('.play-area').removeChild(bullet.element);
 		}
-		Bullet.instanceArr.splice(0, Bullet.instanceArr.length);
+		Bullet.#instanceArr.splice(0, Bullet.#instanceArr.length);
 	}
 	dispose() {//destructor
-		Bullet.instanceArr.splice(Bullet.instanceArr.indexOf(this), 1);
+		Bullet.#instanceArr.splice(Bullet.#instanceArr.indexOf(this), 1);
 		document.querySelector('.play-area').removeChild(this.element);
 	}
 	/**@param {Asteroid} target*/
@@ -44,7 +46,7 @@ class Bullet extends Entity {
 		} else return false;
 	}
 	move() {
-		if (Asteroid.instanceArr.some(bin => this.#asteroidCollison(bin)) || !this.inBounds) return this.dispose();
+		if (Asteroid.InstanceArr.some(bin => this.#asteroidCollison(bin)) || !this.inBounds) return this.dispose();
 		super.move();
 	}
 }

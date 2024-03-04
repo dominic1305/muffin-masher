@@ -1,21 +1,25 @@
 "use strict";
 
 class Asteroid extends Entity {
-	/**@type {Asteroid[]}*/ static instanceArr = [];
+	/**@type {Asteroid[]}*/ static #instanceArr = [];
 	#inPlay = false;
 	static #width = 39;
 	static #maxAsteroids = 20;
 	static #spawnTimer = 0;
 	static #timerMax = 40;
 	#collisions = 0;
+	static #canSpawn = true;
+	/**@type {number}*/ static #spawnBoolChecker;
 	/**@private @param {string} elementID @param {number} velocity @param {number} direction*/
 	constructor(elementID, velocity, direction) {
 		super(elementID, velocity);
 		this.direction = direction;
 	}
+	static get InstanceArr() {
+		return Object.freeze(Asteroid.#instanceArr.map(bin => Object.freeze(bin)));
+	}
 	static spawn() {//initiate new asteroid object
-		Asteroid.#spawnTimer++;
-		if (Asteroid.instanceArr.length >= Asteroid.#maxAsteroids || Asteroid.#spawnTimer <= Asteroid.#timerMax) return; //too many asteroids | asteroid was spawned in last few frames
+		if (Asteroid.#instanceArr.length >= Asteroid.#maxAsteroids || ++Asteroid.#spawnTimer <= Asteroid.#timerMax || !this.#canSpawn) return; //too many asteroids | asteroid spawn recently | bomb going off
 		Asteroid.#spawnTimer = 0;
 
 		const element = document.createElement('img');
@@ -37,7 +41,7 @@ class Asteroid extends Entity {
 		document.querySelector('.play-area').appendChild(element);
 
 		const asteroid = new Asteroid(element.id, Math.random() * (3 - 2) + 2, degrees);
-		Asteroid.instanceArr.push(asteroid);
+		Asteroid.#instanceArr.push(asteroid);
 	}
 	/**@param {number} startX @param {number} startY @param {number} endX @param {number} endY*/
 	static #getDirection(startX, startY, endX, endY) {
@@ -45,10 +49,22 @@ class Asteroid extends Entity {
 		return (angle < 0) ? angle + 360 : angle;
 	}
 	static disposeAll() {
-		for (const asteroid of Asteroid.instanceArr) {
+		for (const asteroid of Asteroid.#instanceArr) {
 			document.querySelector('.play-area').removeChild(asteroid.element);
 		}
-		Asteroid.instanceArr.splice(0, Asteroid.instanceArr.length);
+		Asteroid.#instanceArr.splice(0, Asteroid.#instanceArr.length);
+	}
+	static toggleSpawns() {
+		this.#canSpawn = !this.#canSpawn;
+
+		clearTimeout(this.#spawnBoolChecker);
+		this.#spawnBoolChecker = setTimeout(() => {//spawner was not turned back on in time
+			if (this.#canSpawn) return;
+			this.#canSpawn = true;
+			throw new Error('spawner not turned back on | turning back on');
+		}, 2500);
+
+		return this.#canSpawn;
 	}
 	collide() {
 		if (++this.#collisions >= 10) {
@@ -57,7 +73,7 @@ class Asteroid extends Entity {
 		} else return false
 	}
 	dispose() {//destructor
-		Asteroid.instanceArr.splice(Asteroid.instanceArr.indexOf(this), 1);
+		Asteroid.#instanceArr.splice(Asteroid.#instanceArr.indexOf(this), 1);
 		document.querySelector('.play-area').removeChild(this.element);
 	}
 	move() {
