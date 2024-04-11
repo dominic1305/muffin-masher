@@ -1,7 +1,7 @@
 "use strict";
 
 class SpaceShip extends Entity {
-	/**@type {number[]}*/ #animationPorts = new Array(10).fill(null);
+	/**@type {number[]}*/ #animationPorts = new Array(10);
 	#activeKeys = {
 		W: false,
 		A: false,
@@ -97,20 +97,11 @@ class SpaceShip extends Entity {
 		while (element.childNodes.length > this.#shields) element.removeChild(element.firstChild);
 		if (this.#shields == 0) this.element.classList.remove('shielded');
 	}
-	#checkCollisions () {
-		for (const element of document.querySelectorAll('.play-area > *')) {//search for collidable objects
-			const targetRect = element.getBoundingClientRect();
-			const entityRect = this.boundingBox;
-			if (entityRect.top > targetRect.bottom || entityRect.right < targetRect.left || entityRect.bottom < targetRect.top || entityRect.left > targetRect.right) continue; //collision didn't occur
-
-			switch (element.id.split('_')[0]) {//handle collision
-				case 'asteroid':
-					if (this.#invincible) continue;
-					const asteroid = Asteroid.InstanceArr.filter(bin => bin.elementID == element.id)[0];
-					if (asteroid.collide()) return this.#takeDamage();
-					break;
-				default: continue;
-			}
+	#checkCollisions() {
+		for (const asteroid of Asteroid.InstanceArr) {
+			if (!this.hasCollidedWith(asteroid) || this.#invincible) continue;
+			asteroid.dispose();
+			return this.#takeDamage();
 		}
 	}
 	/**@returns {Generator<{distance: number, asteroid: Asteroid}>}*/

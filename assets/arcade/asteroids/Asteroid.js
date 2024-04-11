@@ -7,7 +7,6 @@ class Asteroid extends Entity {
 	static #maxAsteroids = 20;
 	static #spawnTimer = 0;
 	static #timerMax = 40;
-	#collisions = 0;
 	static #canSpawn = true;
 	/**@type {number}*/ static #spawnBoolChecker;
 	/**@private @param {string} elementID @param {number} velocity @param {number} direction*/
@@ -65,12 +64,6 @@ class Asteroid extends Entity {
 		}, 2500);
 
 		return this.#canSpawn;
-	}
-	collide() {
-		if (++this.#collisions >= 10) {
-			this.dispose();
-			return true;
-		} else return false
 	}
 	dispose() {//destructor
 		Asteroid.#instanceArr.splice(Asteroid.#instanceArr.indexOf(this), 1);

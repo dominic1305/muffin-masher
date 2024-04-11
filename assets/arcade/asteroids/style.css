@@ -295,6 +295,7 @@ html, body {
 }
 
 .bomb-shockwave {
+	image-rendering: pixelated;
 	filter: hue-rotate(230deg) brightness(1.3);
 	transform: translate(-50%, -50%) scale(0.25) rotate(0deg);
 	position: absolute;
