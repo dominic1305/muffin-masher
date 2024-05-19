@@ -37,9 +37,7 @@ class Bullet extends Entity {
 	}
 	/**@param {Asteroid} target*/
 	#asteroidCollison(target) {
-		const entityRect = this.boundingBox;
-		const targetRect = target.boundingBox;
-		if (!(entityRect.top > targetRect.bottom || entityRect.right < targetRect.left || entityRect.bottom < targetRect.top || entityRect.left > targetRect.right)) {
+		if (this.hasCollidedWith(target)) {
 			target.dispose();
 			scoreBoard.addToScore(100);
 			return true;
