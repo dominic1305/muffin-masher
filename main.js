@@ -775,6 +775,7 @@ document.querySelectorAll('#arcade-modal-close-btn').forEach((bin) => {//close a
 });
 
 window.addEventListener('message', (msg) => {//evaluate messages from iframes (casino / arcade)
+	if (!isJSON(msg.data)) return;
 	const data = JSON.parse(msg.data);
 	if (data.origin == 'casino') {//recieve data from casino
 		switch (data.purpose) {

@@ -1,7 +1,7 @@
 "use strict";
 
 class SpaceShip extends Entity {
-	/**@type {number[]}*/ #animationPorts = new Array(10);
+	/**@type {number[]}*/ static #animationPorts = new Array(10);
 	#activeKeys = {
 		W: false,
 		A: false,
@@ -11,25 +11,47 @@ class SpaceShip extends Entity {
 	};
 	#const_Velocity;
 	#const_RotationalVelocity;
-	#shotTimer;
+	#shotTimer = 0;
 	#invincible = false;
 	#shields;
+	#const_shields;
 	#bombs;
+	#const_bombs;
 	#bombHits = 0;
 	#canBomb = true;
-	/**@private @param {string} elementID @param {number} velocity @param {number} rotationalVelocity @param {number} firerate @param {number} shields @param {number} bombs*/
-	constructor(elementID, velocity, rotationalVelocity, firerate, shields, bombs) {
-		super(elementID, velocity);
+	#bulletType = EffectTypes.DEFAULT;
+
+	get BulletType() {
+		return this.#bulletType;
+	}
+
+	get IsMaxShield() {
+		return this.#shields == this.#const_shields;
+	}
+
+	get IsMaxBombs() {
+		return this.#bombs == this.#const_bombs;
+	}
+
+	get inBounds() {
+		const rect = this.boundingBox;
+		return rect.top >= 0 && rect.left >= 0 && rect.bottom <= document.querySelector('.wrapper').clientHeight && rect.right <= document.querySelector('.wrapper').clientWidth;
+	}
+
+	/**@private @param {Element} element @param {number} velocity @param {number} rotationalVelocity @param {number} shields @param {number} bombs*/
+	constructor(element, velocity, rotationalVelocity, shields, bombs) {
+		super(element, velocity);
 		this.#const_Velocity = velocity;
 		this.rotationalVelocity = 0;
 		this.#const_RotationalVelocity = rotationalVelocity;
-		this.firerate = firerate;
-		this.#shotTimer = firerate * 0.5;
 		this.#shields = shields;
+		this.#const_shields = shields;
 		this.#bombs = bombs;
+		this.#const_bombs = bombs;
 	}
-	/**@param {number} velocity @param {number} rotationalVelocity @param {number} firerate @param {number} shields @param {number} bombs*/
-	static spawn(velocity, rotationalVelocity, firerate, shields, bombs) {
+
+	/**@param {number} velocity @param {number} rotationalVelocity @param {number} shields @param {number} bombs*/
+	static spawn(velocity, rotationalVelocity, shields, bombs) {
 		const element = document.createElement('img');
 		element.src = './img/space-ship.png';
 		element.draggable = false;
@@ -54,30 +76,29 @@ class SpaceShip extends Entity {
 		document.querySelector('.space-ship-stats').style.visibility = 'visible';
 		document.querySelector('.play-area').appendChild(element);
 
-		const spaceship = new SpaceShip(element.id, velocity, rotationalVelocity, firerate, shields, bombs);
+		const spaceship = new SpaceShip(element, velocity, rotationalVelocity, shields, bombs);
 		spaceship.#attachUserControl();
 		return spaceship;
 	}
+
 	/**@param {number} id_REF*/
 	#removeAnimation(id_REF) {
-		clearInterval(this.#animationPorts[id_REF]);
-		this.#animationPorts[id_REF] = null;
+		clearInterval(SpaceShip.#animationPorts[id_REF]);
+		SpaceShip.#animationPorts[id_REF] = null;
 	}
+
 	/**@param {number} animation_PORT*/
 	#addAnimation(animation_PORT) {
-		for (let i = 0; i < this.#animationPorts.length; i++) {//find available place for port address
-			if (this.#animationPorts[i] != null) continue;
-			this.#animationPorts[i] = animation_PORT;
+		for (let i = 0; i < SpaceShip.#animationPorts.length; i++) {//find available place for port address
+			if (SpaceShip.#animationPorts[i] != null) continue;
+			SpaceShip.#animationPorts[i] = animation_PORT;
 			break;
 		}
-		const return_val = this.#animationPorts.indexOf(animation_PORT);
+		const return_val = SpaceShip.#animationPorts.indexOf(animation_PORT);
 		if (return_val == -1) throw new Error('cannot assign animation port address, out of bounds');
 		return return_val;
 	}
-	get inBounds() {
-		const rect = this.boundingBox;
-		return rect.top >= 0 && rect.left >= 0 && rect.bottom <= document.querySelector('.wrapper').clientHeight && rect.right <= document.querySelector('.wrapper').clientWidth;
-	}
+
 	/**@param {number} timespan*/
 	#goInvincible(timespan) {
 		this.#invincible = true;
@@ -89,6 +110,7 @@ class SpaceShip extends Entity {
 			this.element.style.visibility = 'visible';
 		}, timespan));
 	}
+
 	#takeDamage() {
 		if (this.#shields-- <= 0) return endGameHandler();
 
@@ -97,13 +119,44 @@ class SpaceShip extends Entity {
 		while (element.childNodes.length > this.#shields) element.removeChild(element.firstChild);
 		if (this.#shields == 0) this.element.classList.remove('shielded');
 	}
+
 	#checkCollisions() {
 		for (const asteroid of Asteroid.InstanceArr) {
 			if (!this.hasCollidedWith(asteroid) || this.#invincible) continue;
 			asteroid.dispose();
 			return this.#takeDamage();
 		}
+
+		for (const effect of Effect.InstanceArr) {
+			if (!this.hasCollidedWith(effect)) continue;
+
+			switch (effect.Type) {
+				case EffectTypes.SHIELD: {//add 1 shield
+					this.#shields++;
+					const shield_element = document.createElement('img')
+					shield_element.src = './img/effect.png';
+					document.querySelector('#space-ship-shields-container').appendChild(shield_element);
+					this.element.classList.add('shielded');
+					break;
+				}
+				case EffectTypes.BOMB: {//add 1 bomb
+					this.#bombs++;
+					const shield_element = document.createElement('img')
+					shield_element.src = './img/effect.png';
+					document.querySelector('#space-ship-bombs-container').appendChild(shield_element);
+					break;
+				}
+				default: {//bullet change
+					this.#bulletType = effect.Type;
+					break;
+				}
+			}
+
+			effect.dispose();
+			scoreBoard.addToScore(500);
+		}
 	}
+
 	/**@returns {Generator<{distance: number, asteroid: Asteroid}>}*/
 	*#getAsteroidDistances() {//enumerates distances of asteroids relative to spaceship location
 		for (const asteroid of Asteroid.InstanceArr) {
@@ -112,6 +165,7 @@ class SpaceShip extends Entity {
 			yield { distance: relative_X / Math.cos(Math.atan2(relative_Y, relative_X)), asteroid: asteroid };
 		}
 	}
+
 	#useBomb() {
 		if (!this.#canBomb || this.#bombs <= 0) return;
 		this.#bombs--;
@@ -141,6 +195,7 @@ class SpaceShip extends Entity {
 		}
 		Asteroid.toggleSpawns();
 	}
+
 	#attachUserControl() {
 		document.addEventListener('keydown', (e) => {//perfrom action on key press
 			if (['w', 'a', 's', 'd'].includes(e.key.toLowerCase())) this.#activeKeys[e.key.toUpperCase()] = true;
@@ -163,26 +218,84 @@ class SpaceShip extends Entity {
 			}
 		});
 	}
+
 	dispose() {//destructor
-		for (let i = 0; i < this.#animationPorts.length; i++) this.#removeAnimation(i);
+		for (let i = 0; i < SpaceShip.#animationPorts.length; i++) this.#removeAnimation(i);
 		document.querySelector('#space-ship-shields-container').innerHTML = '';
 		document.querySelector('#space-ship-bombs-container').innerHTML = '';
 		document.querySelector('.play-area').removeChild(this.element);
 		player = null;
 	}
+
 	#rotate() {
 		const newAngle = this.degrees + this.rotationalVelocity;
 		this.element.style.transform = `translate(-50%, -50%) scale(2) rotate(${newAngle}deg)`;
 	}
-	#shoot() {
-		if (++this.#shotTimer <= this.firerate) return;
-		this.#shotTimer = 0;
 
-		Bullet.spawn(this.#const_Velocity * 2, this.degrees, this.position);
+	#shoot() {
+		if (--this.#shotTimer > 0) return;
+		this.#shotTimer = 50; //default timer reset
+
+		switch (this.#bulletType) {
+			case EffectTypes.DEFAULT: {//use default timer reset
+				Bullet.spawn(this.#const_Velocity * 2, this.degrees, this.position, this.#bulletType);
+				break;
+			}
+			case EffectTypes.GIANT: {//Bullet contructor handles size change
+				Bullet.spawn(this.#const_Velocity * 1.5, this.degrees, this.position, this.#bulletType);
+				this.#shotTimer = 75;
+				break;
+			}
+			case EffectTypes.RAPID: {//shoot twice as fast and faster bullets
+				Bullet.spawn(this.#const_Velocity * 2.5, this.degrees, this.position, this.#bulletType);
+				this.#shotTimer = 25;
+				break;
+			}
+			case EffectTypes.SPREAD: {//use default timer reset
+				Bullet.spawn(this.#const_Velocity * 2, this.degrees, this.position, this.#bulletType);
+				Bullet.spawn(this.#const_Velocity * 2, this.degrees + 15, this.position, this.#bulletType);
+				Bullet.spawn(this.#const_Velocity * 2, this.degrees - 15, this.position, this.#bulletType);
+				break;
+			}
+			case EffectTypes.PIERCE: {//Bullet constructor handles pierce flag set
+				Bullet.spawn(this.#const_Velocity * 2, this.degrees, this.position, this.#bulletType);
+				this.#shotTimer = 40;
+				break;
+			}
+			case EffectTypes.EXPLODE: {//Bullet constructor handles bullet destruction
+				Bullet.spawn(this.#const_Velocity * 1.5, this.degrees, this.position, this.#bulletType);
+				this.#shotTimer = 65;
+				break;
+			}
+			case EffectTypes.TRACKING: {//Bullet move method handles tracking
+				if (Asteroid.InstanceArr.length == 0) { this.#shotTimer = 0; break; } //no tracking target available, don't spawn
+				Bullet.spawn(this.#const_Velocity * 1.5, this.degrees, this.position, this.#bulletType);
+				this.#shotTimer = 75;
+				break;
+			}
+			case EffectTypes.SPLIT: {//shoot a bullet in front and behind
+				Bullet.spawn(this.#const_Velocity * 2, this.degrees, this.position, this.#bulletType);
+				Bullet.spawn(this.#const_Velocity * 2, (this.degrees + 180) % 360, this.position, this.#bulletType);
+				break;
+			}
+			case EffectTypes.FLAME: {//very fast shot speed, very short distence, & smaller bullets. Bullet constructor handles bullet destruction & size alteration
+				Bullet.spawn(this.#const_Velocity * 2, this.degrees, this.position, this.#bulletType);
+				this.#shotTimer = 3;
+				break;
+			}
+			default: {//not valid bullet type, fall back to default bullet type
+				console.warn('invalid bullet type, falling back to default');
+				this.#bulletType = EffectTypes.DEFAULT;
+				Bullet.spawn(this.#const_Velocity * 2, this.degrees, this.position, this.#bulletType);
+				break;
+			}
+		}
 	}
+
 	move() {
 		if (!this.inBounds) return endGameHandler();
 		if (this.#bombHits <= 0) this.#canBomb = true;
+
 		super.move();
 		this.#rotate();
 		this.#shoot();

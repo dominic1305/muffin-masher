@@ -78,6 +78,7 @@ void function saveRetrieve() {//loads save file if one is found
 		gameData.skins = temp.skins.map((bin) => {
 			return new SkinItem(bin.imgAddress, bin.lockState, bin.id, bin.currentSkin, bin.cost).display();
 		});
+		gameData.skins.filter(bin => bin.currentSkin)[0].selectSkin();
 		gameData.prestigeSys.clock.mins = temp.prestigeSys.clock.mins;
 		gameData.prestigeSys.clock.secs = temp.prestigeSys.clock.secs;
 		document.querySelector('.casino-modal-btn').style.visibility = (gameData.prestigeSys.prestigeCount >= 1) ? 'visible' : 'hidden';

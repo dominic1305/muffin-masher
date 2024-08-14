@@ -2,15 +2,24 @@
 
 class Bullet extends Entity {
 	/**@type {Bullet[]}*/static #instanceArr = [];
-	/**@private @param {string} elementID @param {number} velocity*/
-	constructor(elementID, velocity) {
-		super(elementID, velocity);
-	}
+	#pierce = false;
+	#destructTimer = Number.MAX_VALUE; //large number to represent infinite timer
+	#type;
+	#explodable = false;
+	/**@type {Readonly<Asteroid>?}*/ #trackingTarget;
+
 	static get InstanceArr() {
-		return Object.freeze(Bullet.#instanceArr.map(bin => Object.freeze(bin)));
+		return Object.freeze(this.#instanceArr.map(bin => Object.freeze(bin)));
 	}
-	/**@param {number} velocity @param {number} direction @param {{x: number, y: number}} spawnPosition*/
-	static spawn(velocity, direction, spawnPosition) {
+
+	/**@private @param {element} element @param {number} velocity @param {Symbol} type*/
+	constructor(element, velocity, type) {
+		super(element, velocity);
+		this.#type = type;
+	}
+
+	/**@param {number} velocity @param {number} direction @param {{x: number, y: number}} spawnPosition @param {Symbol} type*/
+	static spawn(velocity, direction, spawnPosition, type) {
 		const element = document.createElement('img');
 		element.src = './img/bullet.png';
 		element.draggable = false;
@@ -20,31 +29,106 @@ class Bullet extends Entity {
 		element.style.setProperty('--direction', `${direction}deg`);
 		element.style.top = `${spawnPosition.y}px`;
 		element.style.left = `${spawnPosition.x}px`;
+		element.style.filter = `hue-rotate(${Effect.getColour(type)}deg) brightness(2)`;
+
+		const bullet = new Bullet(element, velocity, type);
+
+		switch (type) {
+			case EffectTypes.GIANT: {
+				element.style.width = '20px';
+				break;
+			}
+			case EffectTypes.PIERCE: {
+				bullet.#pierce = true;
+				break;
+			}
+			case EffectTypes.SPREAD: {
+				bullet.#destructTimer = 50; //delete after 50 ticks (0.83s)
+				break;
+			}
+			case EffectTypes.EXPLODE: {
+				bullet.#destructTimer = 60; //delete after 60 ticks (1s)
+				bullet.#explodable = true;
+				break;
+			}
+			case EffectTypes.TRACKING: {
+				bullet.#trackingTarget = this.#getClosestAsteroid(spawnPosition);
+				break;
+			}
+			case EffectTypes.FLAME: {
+				bullet.#destructTimer = 30; //delete after 40 ticks (0.5s)
+				bullet.#pierce = true;
+				element.style.width = '8px';
+				break;
+			}
+		}
 
 		document.querySelector('.play-area').appendChild(element);
 
-		Bullet.#instanceArr.push(new Bullet(element.id, velocity));
+		this.#instanceArr.push(bullet);
+
+		return bullet;
 	}
+
 	static disposeAll() {
-		for (const bullet of Bullet.#instanceArr) {
+		for (const bullet of this.#instanceArr) {
 			document.querySelector('.play-area').removeChild(bullet.element);
 		}
-		Bullet.#instanceArr.splice(0, Bullet.#instanceArr.length);
+		this.#instanceArr.splice(0, this.#instanceArr.length);
 	}
+
+	/**@param {{x: number, y: number}} position*/
+	static #getClosestAsteroid(position) {
+		if (Asteroid.InstanceArr.length == 0) return null; //no asteroids exist
+
+		return Asteroid.InstanceArr.map((bin) => {
+			const relative_X = bin.position.x - position.x;
+			const relative_Y = bin.position.y - position.y;
+			return { distance: relative_X / Math.cos(Math.atan2(relative_Y, relative_X)), reference: bin };
+		}).sort((a, b) => a.distance - b.distance)[0].reference;
+	}
+
 	dispose() {//destructor
 		Bullet.#instanceArr.splice(Bullet.#instanceArr.indexOf(this), 1);
 		document.querySelector('.play-area').removeChild(this.element);
 	}
-	/**@param {Asteroid} target*/
-	#asteroidCollison(target) {
-		if (this.hasCollidedWith(target)) {
-			target.dispose();
-			scoreBoard.addToScore(100);
-			return true;
-		} else return false;
-	}
+
 	move() {
-		if (Asteroid.InstanceArr.some(bin => this.#asteroidCollison(bin)) || !this.inBounds) return this.dispose();
+		if (!this.inBounds || --this.#destructTimer < 0) return this.dispose();
+
+		if (Asteroid.InstanceArr.some((bin) => { if (this.hasCollidedWith(bin)) { bin.dispose(); return true; } else return false; })) {//has collided with asteroid
+			if (this.#type == EffectTypes.EXPLODE && this.#explodable) {//explode on contact
+				const spacing = 360 / 12;
+
+				for (let i = 0; i + i * spacing < 360; i++) {//spawn bullets in all directions
+					const bullet = Bullet.spawn(this.velocity, this.degrees + spacing * i, this.position, EffectTypes.EXPLODE);
+					bullet.#explodable = false;
+				}
+			}
+
+			scoreBoard.addToScore(100);
+			if (!this.#pierce) return this.dispose();
+		}
+
+		tracking: if (this.#type == EffectTypes.TRACKING && this.#trackingTarget != null) {//has tracking target, change angle toward target
+			if (document.querySelector(`#${this.#trackingTarget.element.id}`) == null) {//target no longer exists, remove target
+				this.#trackingTarget = null;
+				break tracking;
+			}
+
+			const x = this.#trackingTarget.position.x - this.position.x;
+			const y = this.#trackingTarget.position.y - this.position.y;
+			const sector = (x > 0 && y < 0) ? 0 : (x > 0 && y > 0) ? 1 : (x < 0 && y > 0) ? 2 : (x < 0 && y < 0) ? 3 : 3; //cartesian sectors [[0, 1], [2, 3]]
+
+			let change = Math.atan2(Math.abs(y), Math.abs(x)) * (180 / Math.PI) + (90 * sector) - this.degrees; //[relative arctangent] * [rad to deg ratio] + [cartesian offset] - [current degrees]
+
+			if (change > 180) change = -180 + (change % 180); //if change is too far clockwise, go anticlockwise instead. take shortest path
+
+			change = (change >= 5) ? 5 : (change <= -5) ? -5 : change; //clamp change to 5deg per tick
+
+			this.element.style.setProperty('--direction', `${this.degrees + change}deg`);
+		}
+
 		super.move();
 	}
 }

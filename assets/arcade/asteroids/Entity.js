@@ -2,24 +2,21 @@
 
 /**@abstract*/
 class Entity {
-	/**@protected @param {string} elementID @param {number} velocity*/
-	constructor(elementID, velocity) {
-		this.elementID = elementID;
-		this.velocity = velocity;
-	}
-	get element() {
-		return document.querySelector(`#${this.elementID}`);
-	}
+	/**@protected*/ element;
+	/**@protected*/ velocity;
+
 	get degrees() {
 		const matrix = window.getComputedStyle(this.element).transform;
 		const values = matrix.split('(')[1].split(')')[0].split(',').map(bin => Number(bin));
-		const angle = Math.round(Math.atan2(values[1], values[0]) * (180 / Math.PI));
+		const angle = Math.atan2(values[1], values[0]) * (180 / Math.PI);
 		return ((angle < 0) ? angle + 360 : angle) % 360;
 	}
+
 	/**@returns {1 | 2 | 3 | 4}*/
 	get directionSector() {
 		return Math.ceil(this.degrees / 90) || 1;
 	}
+
 	get angle() {
 		const degrees = this.degrees;
 		const angle = degrees % 90;
@@ -37,21 +34,25 @@ class Entity {
 			return 90 - angle;
 		} else return angle;
 	}
+
 	get vector() {
 		return {
 			x: (this.directionSector == 1 || this.directionSector == 2) ? Math.cos(this.angle * (Math.PI / 180)) * this.velocity : -Math.cos(this.angle * (Math.PI / 180)) * this.velocity,
 			y: (this.directionSector == 4 || this.directionSector == 1) ? Math.sin(this.angle * (Math.PI / 180)) * this.velocity : -Math.sin(this.angle * (Math.PI / 180)) * this.velocity
 		};
 	}
+
 	get position() {
 		return {
 			x: parseFloat(window.getComputedStyle(this.element).left),
 			y: parseFloat(window.getComputedStyle(this.element).top)
 		};
 	}
+
 	get boundingBox() {
 		return this.element.getBoundingClientRect();
 	}
+
 	/**@returns {{x: number, y: number}[]}*/
 	get vertices() {
 		const rect = this.boundingBox;
@@ -62,11 +63,19 @@ class Entity {
 		vertices[3] = { x: rect.x, y: rect.y + rect.width };
 		return vertices;
 	}
+
 	get inBounds() {
 		const DOMRect = document.body.getBoundingClientRect();
 		const entityRect = this.boundingBox;
 		return !(entityRect.top > DOMRect.bottom || entityRect.right < DOMRect.left || entityRect.bottom < DOMRect.top || entityRect.left > DOMRect.right);
 	}
+
+	/**@protected @param {Element} element @param {number} velocity*/
+	constructor(element, velocity) {
+		this.element = element;
+		this.velocity = velocity;
+	}
+
 	/**@protected @param {Entity} target*/
 	hasCollidedWith(target) {
 		const targRect = target.boundingBox;
@@ -104,6 +113,7 @@ class Entity {
 
 		return true; //no separating axis was found | entities are colliding
 	}
+
 	/**@returns {[min: number, max: number]} @param {{x: number, y: number}[]} vertices @param {{x: number, y: number}} normal*/
 	#projectVertices(vertices, normal) {
 		let min = Number.MAX_VALUE;
@@ -116,6 +126,7 @@ class Entity {
 		}
 		return [ max, min ];
 	}
+
 	/**@param {number[]} vec1 @param {number[]} vec2*/
 	#dotProd(vec1, vec2) {
 		if (vec1.length != vec2.length) throw new Error('different sized matrices cannot have a dot product');
@@ -125,6 +136,7 @@ class Entity {
 		}
 		return result;
 	}
+
 	move() {
 		this.element.style.left = `${this.position.x + this.vector.x}px`;
 		this.element.style.top = `${this.position.y - this.vector.y}px`;

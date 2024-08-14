@@ -101,6 +101,8 @@ html, body {
 
 .bullet {
 	z-index: 2;
+	image-rendering: pixelated;
+	width: 12px;
 	transform: translate(-50%, -50%) scale(0.5);
 	position: absolute;
 	--direction: 0deg;
@@ -308,5 +310,39 @@ html, body {
 	}
 	100% {
 		transform: translate(-50%, -50%) scale(8) rotate(2880deg);
+	}
+}
+
+.effect {
+	z-index: 1;
+	image-rendering: pixelated;
+	width: 35px;
+	transform: translate(-50%, -50%);
+	position: absolute;
+	--colour: 0deg;
+	--txt-rot: 0deg;
+	--text: "E";
+}
+
+.effect > img {
+	animation: effect_ANM 500ms infinite alternate ease-in-out;
+}
+
+.effect::before {
+	z-index: 1;
+	content: var(--text);
+	font-weight: bold;
+	transform: translate(-50%, -50%) rotate(var(--txt-rot));
+	position: absolute;
+	top: 45%;
+	left: 45%;
+}
+
+@keyframes effect_ANM {
+	0% {
+		filter: hue-rotate(var(--colour)) brightness(180%);
+	}
+	100% {
+		filter: hue-rotate(var(--colour)) brightness(220%);
 	}
 }

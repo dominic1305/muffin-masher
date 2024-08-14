@@ -13,13 +13,18 @@ requestAnimationFrame(function loop(time) {
 		player.move();
 		Asteroid.spawn();
 		scoreBoard.updateScoreBoard();
+		Effect.spawn();
 		for (const asteroid of Asteroid.InstanceArr) {
 			asteroid.move();
 		}
 		for (const bullet of Bullet.InstanceArr) {
 			bullet.move();
 		}
+		for (const effect of Effect.InstanceArr) {
+			effect.move();
+		}
 	}
+
 	requestAnimationFrame(loop);
 });
 
@@ -27,7 +32,7 @@ document.querySelector('.game-start-btn').addEventListener('click', async () => 
 	window.parent.postMessage(JSON.stringify({origin: 'arcade', purpose: 'game-start'}), '*');
 	scoreBoard = await ScoreBoardManager.getConnection();
 	gameState = true;
-	player = SpaceShip.spawn(3, 4, 50, 2, 3);
+	player = SpaceShip.spawn(3, 4, 2, 3);
 	document.querySelector('.game-start-modal').style.visibility = 'hidden';
 });
 
@@ -36,6 +41,7 @@ function endGameHandler() {//perform actions to end game and set up next game
 	player.dispose();
 	Asteroid.disposeAll();
 	Bullet.disposeAll();
+	Effect.disposeAll();
 
 	document.body.appendChild(document.querySelector('#game-over-modal-template').content.cloneNode(true));
 	document.querySelector('.game-over-txt').innerHTML = 'you died';

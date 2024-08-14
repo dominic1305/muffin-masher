@@ -9,17 +9,20 @@ class Asteroid extends Entity {
 	static #timerMax = 40;
 	static #canSpawn = true;
 	/**@type {number}*/ static #spawnBoolChecker;
-	/**@private @param {string} elementID @param {number} velocity @param {number} direction*/
-	constructor(elementID, velocity, direction) {
-		super(elementID, velocity);
+
+	static get InstanceArr() {
+		return Object.freeze(this.#instanceArr.map(bin => Object.freeze(bin)));
+	}
+
+	/**@private @param {element} element @param {number} velocity @param {number} direction*/
+	constructor(element, velocity, direction) {
+		super(element, velocity);
 		this.direction = direction;
 	}
-	static get InstanceArr() {
-		return Object.freeze(Asteroid.#instanceArr.map(bin => Object.freeze(bin)));
-	}
+
 	static spawn() {//initiate new asteroid object
-		if (Asteroid.#instanceArr.length >= Asteroid.#maxAsteroids || ++Asteroid.#spawnTimer <= Asteroid.#timerMax || !this.#canSpawn) return; //too many asteroids | asteroid spawn recently | bomb going off
-		Asteroid.#spawnTimer = 0;
+		if (this.#instanceArr.length >= this.#maxAsteroids || ++this.#spawnTimer <= this.#timerMax || !this.#canSpawn) return; //too many asteroids | asteroid spawn recently | bomb going off
+		this.#spawnTimer = 0;
 
 		const element = document.createElement('img');
 		element.src = './img/asteroid.png';
@@ -27,11 +30,11 @@ class Asteroid extends Entity {
 		element.className = 'asteroid';
 		element.id = `asteroid_${Math.random().toString(16).slice(2)}`;
 
-		const startX = (Math.floor(Math.random() * 1000) % 2 == 0) ? 0 - Asteroid.#width : document.body.clientWidth + Asteroid.#width;
+		const startX = (Math.floor(Math.random() * 2) == 0) ? -this.#width : document.body.clientWidth + this.#width;
 		const startY = Math.floor(Math.random() * document.body.clientHeight);
-		const endX = (startX < 0) ? document.body.clientWidth + Asteroid.#width : 0 - Asteroid.#width;
+		const endX = (startX < 0) ? document.body.clientWidth + this.#width : -this.#width;
 		const endY = Math.floor(Math.random() * document.body.clientHeight);
-		const degrees = Asteroid.#getDirection(startX, startY, endX, endY);
+		const degrees = this.#getDirection(startX, startY, endX, endY);
 
 		element.style.top = `${startY}px`;
 		element.style.left = `${startX}px`;
@@ -39,20 +42,23 @@ class Asteroid extends Entity {
 
 		document.querySelector('.play-area').appendChild(element);
 
-		const asteroid = new Asteroid(element.id, Math.random() * (3 - 2) + 2, degrees);
-		Asteroid.#instanceArr.push(asteroid);
+		const asteroid = new Asteroid(element, Math.random() * (3 - 2) + 2, degrees);
+		this.#instanceArr.push(asteroid);
 	}
+
 	/**@param {number} startX @param {number} startY @param {number} endX @param {number} endY*/
 	static #getDirection(startX, startY, endX, endY) {
-		const angle = (Math.atan2(endY - startY, endX - startX) * (180 / Math.PI)) + 90;
+		const angle = Math.atan2(endY - startY, endX - startX) * (180 / Math.PI) + 90;
 		return (angle < 0) ? angle + 360 : angle;
 	}
+
 	static disposeAll() {
-		for (const asteroid of Asteroid.#instanceArr) {
+		for (const asteroid of this.#instanceArr) {
 			document.querySelector('.play-area').removeChild(asteroid.element);
 		}
-		Asteroid.#instanceArr.splice(0, Asteroid.#instanceArr.length);
+		this.#instanceArr.splice(0, this.#instanceArr.length);
 	}
+
 	static toggleSpawns() {
 		this.#canSpawn = !this.#canSpawn;
 
@@ -65,10 +71,12 @@ class Asteroid extends Entity {
 
 		return this.#canSpawn;
 	}
+
 	dispose() {//destructor
 		Asteroid.#instanceArr.splice(Asteroid.#instanceArr.indexOf(this), 1);
 		document.querySelector('.play-area').removeChild(this.element);
 	}
+
 	move() {
 		if (!this.#inPlay && this.inBounds) this.#inPlay = true;
 		else if (this.#inPlay && !this.inBounds) return this.dispose();
