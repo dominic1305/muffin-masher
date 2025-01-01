@@ -14,10 +14,9 @@ class Asteroid extends Entity {
 		return Object.freeze(this.#instanceArr.map(bin => Object.freeze(bin)));
 	}
 
-	/**@private @param {element} element @param {number} velocity @param {number} direction*/
-	constructor(element, velocity, direction) {
+	/**@private @param {element} element @param {number} velocity*/
+	constructor(element, velocity) {
 		super(element, velocity);
-		this.direction = direction;
 	}
 
 	static spawn() {//initiate new asteroid object
@@ -42,7 +41,7 @@ class Asteroid extends Entity {
 
 		document.querySelector('.play-area').appendChild(element);
 
-		const asteroid = new Asteroid(element, Math.random() * (3 - 2) + 2, degrees);
+		const asteroid = new Asteroid(element, Math.random() * (3 - 2) + 2);
 		this.#instanceArr.push(asteroid);
 	}
 

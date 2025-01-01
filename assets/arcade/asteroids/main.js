@@ -14,6 +14,7 @@ requestAnimationFrame(function loop(time) {
 		Asteroid.spawn();
 		scoreBoard.updateScoreBoard();
 		Effect.spawn();
+		Ammo.spawn();
 		for (const asteroid of Asteroid.InstanceArr) {
 			asteroid.move();
 		}
@@ -22,6 +23,9 @@ requestAnimationFrame(function loop(time) {
 		}
 		for (const effect of Effect.InstanceArr) {
 			effect.move();
+		}
+		for (const ammo of Ammo.InstanceArr) {
+			ammo.move();
 		}
 	}
 
@@ -42,6 +46,7 @@ function endGameHandler() {//perform actions to end game and set up next game
 	Asteroid.disposeAll();
 	Bullet.disposeAll();
 	Effect.disposeAll();
+	Ammo.disposeAll();
 
 	document.body.appendChild(document.querySelector('#game-over-modal-template').content.cloneNode(true));
 	document.querySelector('.game-over-txt').innerHTML = 'you died';

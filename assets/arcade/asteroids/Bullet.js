@@ -96,7 +96,8 @@ class Bullet extends Entity {
 	move() {
 		if (!this.inBounds || --this.#destructTimer < 0) return this.dispose();
 
-		if (Asteroid.InstanceArr.some((bin) => { if (this.hasCollidedWith(bin)) { bin.dispose(); return true; } else return false; })) {//has collided with asteroid
+		const collidingAsteroid = Asteroid.InstanceArr.filter(bin => this.hasCollidedWith(bin))[0];
+		if (collidingAsteroid != null) {//has collided with asteroid
 			if (this.#type == EffectTypes.EXPLODE && this.#explodable) {//explode on contact
 				const spacing = 360 / 12;
 
@@ -106,7 +107,12 @@ class Bullet extends Entity {
 				}
 			}
 
+			if (Math.floor(Math.random() * 2) == 0) {//50% chance to spawn an ammo
+				Ammo.spawn(collidingAsteroid.position);
+			}
+
 			scoreBoard.addToScore(100);
+			collidingAsteroid.dispose();
 			if (!this.#pierce) return this.dispose();
 		}
 
@@ -118,7 +124,7 @@ class Bullet extends Entity {
 
 			const x = this.#trackingTarget.position.x - this.position.x;
 			const y = this.#trackingTarget.position.y - this.position.y;
-			const sector = (x > 0 && y < 0) ? 0 : (x > 0 && y > 0) ? 1 : (x < 0 && y > 0) ? 2 : (x < 0 && y < 0) ? 3 : 3; //cartesian sectors [[0, 1], [2, 3]]
+			const sector = (x > 0 && y < 0) ? 0 : (x > 0 && y > 0) ? 1 : (x < 0 && y > 0) ? 2 : (x < 0 && y < 0) ? 3 : 3; //cartesian sectors [[3, 0], [2, 1]]
 
 			let change = Math.atan2(Math.abs(y), Math.abs(x)) * (180 / Math.PI) + (90 * sector) - this.degrees; //[relative arctangent] * [rad to deg ratio] + [cartesian offset] - [current degrees]
 

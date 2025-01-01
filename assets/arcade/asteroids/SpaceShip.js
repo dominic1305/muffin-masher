@@ -20,6 +20,7 @@ class SpaceShip extends Entity {
 	#bombHits = 0;
 	#canBomb = true;
 	#bulletType = EffectTypes.DEFAULT;
+	#ammo = 100;
 
 	get BulletType() {
 		return this.#bulletType;
@@ -123,6 +124,7 @@ class SpaceShip extends Entity {
 	#checkCollisions() {
 		for (const asteroid of Asteroid.InstanceArr) {
 			if (!this.hasCollidedWith(asteroid) || this.#invincible) continue;
+
 			asteroid.dispose();
 			return this.#takeDamage();
 		}
@@ -152,8 +154,21 @@ class SpaceShip extends Entity {
 				}
 			}
 
+			const new_ammo = Math.round(Math.random() * (31 - 20) + 20) + this.#ammo;
+			this.#ammo = (new_ammo > 100) ? 100 : new_ammo;
+
 			effect.dispose();
 			scoreBoard.addToScore(500);
+		}
+
+		for (const ammo of Ammo.InstanceArr) {
+			if (!this.hasCollidedWith(ammo)) continue;
+
+			const new_ammo = Math.floor(Math.random() * (8 - 3) + 3) + this.#ammo;
+			this.#ammo = (new_ammo > 100) ? 100 : new_ammo;
+
+			ammo.dispose();
+			scoreBoard.addToScore(10);
 		}
 	}
 
@@ -186,13 +201,18 @@ class SpaceShip extends Entity {
 		for (const { distance, asteroid } of this.#getAsteroidDistances()) {
 			if (distance > 512) continue; //out of shockwave range
 			this.#bombHits++;
+
 			setTimeout(() => {
 				this.#bombHits--;
+
 				if (Asteroid.InstanceArr.indexOf(asteroid) == -1) return; //asteroid has been destroyed already, pointer no longer exists
+				if (Math.floor(Math.random() * 2) == 0) Ammo.spawn(asteroid.position); //50% chance to spawn an ammo
+
 				asteroid.dispose();
 				scoreBoard.addToScore(100);
 			}, distance / 0.992); //shockwave velocity 0.992px/s
 		}
+
 		Asteroid.toggleSpawns();
 	}
 
@@ -233,60 +253,70 @@ class SpaceShip extends Entity {
 	}
 
 	#shoot() {
-		if (--this.#shotTimer > 0) return;
+		if (--this.#shotTimer > 0 || this.#ammo <= 0) return;
 		this.#shotTimer = 50; //default timer reset
 
 		switch (this.#bulletType) {
 			case EffectTypes.DEFAULT: {//use default timer reset
 				Bullet.spawn(this.#const_Velocity * 2, this.degrees, this.position, this.#bulletType);
+				this.#ammo -= 1;
 				break;
 			}
 			case EffectTypes.GIANT: {//Bullet contructor handles size change
 				Bullet.spawn(this.#const_Velocity * 1.5, this.degrees, this.position, this.#bulletType);
 				this.#shotTimer = 75;
+				this.#ammo -= 1;
 				break;
 			}
 			case EffectTypes.RAPID: {//shoot twice as fast and faster bullets
 				Bullet.spawn(this.#const_Velocity * 2.5, this.degrees, this.position, this.#bulletType);
 				this.#shotTimer = 25;
+				this.#ammo -= 1;
 				break;
 			}
 			case EffectTypes.SPREAD: {//use default timer reset
 				Bullet.spawn(this.#const_Velocity * 2, this.degrees, this.position, this.#bulletType);
 				Bullet.spawn(this.#const_Velocity * 2, this.degrees + 15, this.position, this.#bulletType);
 				Bullet.spawn(this.#const_Velocity * 2, this.degrees - 15, this.position, this.#bulletType);
+				this.#ammo -= 3;
 				break;
 			}
 			case EffectTypes.PIERCE: {//Bullet constructor handles pierce flag set
 				Bullet.spawn(this.#const_Velocity * 2, this.degrees, this.position, this.#bulletType);
 				this.#shotTimer = 40;
+				this.#ammo -= 1;
 				break;
 			}
 			case EffectTypes.EXPLODE: {//Bullet constructor handles bullet destruction
 				Bullet.spawn(this.#const_Velocity * 1.5, this.degrees, this.position, this.#bulletType);
 				this.#shotTimer = 65;
+				this.#ammo -= 2;
 				break;
 			}
 			case EffectTypes.TRACKING: {//Bullet move method handles tracking
 				if (Asteroid.InstanceArr.length == 0) { this.#shotTimer = 0; break; } //no tracking target available, don't spawn
 				Bullet.spawn(this.#const_Velocity * 1.5, this.degrees, this.position, this.#bulletType);
 				this.#shotTimer = 75;
+				this.#ammo -= 5;
 				break;
 			}
 			case EffectTypes.SPLIT: {//shoot a bullet in front and behind
 				Bullet.spawn(this.#const_Velocity * 2, this.degrees, this.position, this.#bulletType);
 				Bullet.spawn(this.#const_Velocity * 2, (this.degrees + 180) % 360, this.position, this.#bulletType);
+				this.#ammo -= 2;
 				break;
 			}
 			case EffectTypes.FLAME: {//very fast shot speed, very short distence, & smaller bullets. Bullet constructor handles bullet destruction & size alteration
 				Bullet.spawn(this.#const_Velocity * 2, this.degrees, this.position, this.#bulletType);
 				this.#shotTimer = 3;
+				this.#ammo -= 0.25; //don't instantly consume all the user's ammo
 				break;
 			}
 			default: {//not valid bullet type, fall back to default bullet type
 				console.warn('invalid bullet type, falling back to default');
 				this.#bulletType = EffectTypes.DEFAULT;
 				Bullet.spawn(this.#const_Velocity * 2, this.degrees, this.position, this.#bulletType);
+				this.#ammo -= 1;
 				break;
 			}
 		}
@@ -300,5 +330,7 @@ class SpaceShip extends Entity {
 		this.#rotate();
 		this.#shoot();
 		this.#checkCollisions();
+
+		document.querySelector('#space-ship-ammo-count').innerHTML = String(Math.ceil(this.#ammo)).padStart(3, '0');
 	}
 }

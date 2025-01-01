@@ -2,7 +2,6 @@
 
 /**@abstract*/
 class Entity {
-	/**@protected*/ element;
 	/**@protected*/ velocity;
 
 	get degrees() {
