@@ -1,16 +1,11 @@
 "use strict";
 
 class Bullet extends Entity {
-	/**@type {Bullet[]}*/static #instanceArr = [];
 	#pierce = false;
 	#destructTimer = Number.MAX_VALUE; //large number to represent infinite timer
 	#type;
 	#explodable = false;
 	/**@type {Readonly<Asteroid>?}*/ #trackingTarget;
-
-	static get InstanceArr() {
-		return Object.freeze(this.#instanceArr.map(bin => Object.freeze(bin)));
-	}
 
 	/**@private @param {element} element @param {number} velocity @param {Symbol} type*/
 	constructor(element, velocity, type) {
@@ -29,59 +24,50 @@ class Bullet extends Entity {
 		element.style.setProperty('--direction', `${direction}deg`);
 		element.style.top = `${spawnPosition.y}px`;
 		element.style.left = `${spawnPosition.x}px`;
-		element.style.filter = `hue-rotate(${Effect.getColour(type)}deg) brightness(2)`;
+		element.style.filter = `hue-rotate(${Effect.getInfo(type).colour}deg) brightness(2)`;
 
 		const bullet = new Bullet(element, velocity, type);
 
 		switch (type) {
-			case EffectTypes.GIANT: {
+			case EffectType.GIANT: {
 				element.style.width = '20px';
 				break;
 			}
-			case EffectTypes.PIERCE: {
+			case EffectType.PIERCE: {
 				bullet.#pierce = true;
 				break;
 			}
-			case EffectTypes.SPREAD: {
+			case EffectType.SPREAD: {
 				bullet.#destructTimer = 50; //delete after 50 ticks (0.83s)
 				break;
 			}
-			case EffectTypes.EXPLODE: {
+			case EffectType.EXPLODE: {
 				bullet.#destructTimer = 60; //delete after 60 ticks (1s)
 				bullet.#explodable = true;
 				break;
 			}
-			case EffectTypes.TRACKING: {
+			case EffectType.TRACKING: {
 				bullet.#trackingTarget = this.#getClosestAsteroid(spawnPosition);
 				break;
 			}
-			case EffectTypes.FLAME: {
-				bullet.#destructTimer = 30; //delete after 40 ticks (0.5s)
+			case EffectType.FLAME: {
+				bullet.#destructTimer = 30; //delete after 0.5s
 				bullet.#pierce = true;
 				element.style.width = '8px';
 				break;
 			}
 		}
 
-		document.querySelector('.play-area').appendChild(element);
-
-		this.#instanceArr.push(bullet);
+		GlobalData.bullets.Add(bullet);
 
 		return bullet;
 	}
 
-	static disposeAll() {
-		for (const bullet of this.#instanceArr) {
-			document.querySelector('.play-area').removeChild(bullet.element);
-		}
-		this.#instanceArr.splice(0, this.#instanceArr.length);
-	}
-
 	/**@param {{x: number, y: number}} position*/
 	static #getClosestAsteroid(position) {
-		if (Asteroid.InstanceArr.length == 0) return null; //no asteroids exist
+		if (GlobalData.asteroids.Length == 0) return null; //no asteroids exist
 
-		return Asteroid.InstanceArr.map((bin) => {
+		return GlobalData.asteroids.ToArray().map((bin) => {
 			const relative_X = bin.position.x - position.x;
 			const relative_Y = bin.position.y - position.y;
 			return { distance: relative_X / Math.cos(Math.atan2(relative_Y, relative_X)), reference: bin };
@@ -89,20 +75,20 @@ class Bullet extends Entity {
 	}
 
 	dispose() {//destructor
-		Bullet.#instanceArr.splice(Bullet.#instanceArr.indexOf(this), 1);
-		document.querySelector('.play-area').removeChild(this.element);
+		super.dispose();
+		GlobalData.bullets.Remove(this);
 	}
 
 	move() {
 		if (!this.inBounds || --this.#destructTimer < 0) return this.dispose();
 
-		const collidingAsteroid = Asteroid.InstanceArr.filter(bin => this.hasCollidedWith(bin))[0];
+		const collidingAsteroid = GlobalData.asteroids.Find(bin => this.hasCollidedWith(bin));
 		if (collidingAsteroid != null) {//has collided with asteroid
-			if (this.#type == EffectTypes.EXPLODE && this.#explodable) {//explode on contact
+			if (this.#type == EffectType.EXPLODE && this.#explodable) {//explode on contact
 				const spacing = 360 / 12;
 
 				for (let i = 0; i + i * spacing < 360; i++) {//spawn bullets in all directions
-					const bullet = Bullet.spawn(this.velocity, this.degrees + spacing * i, this.position, EffectTypes.EXPLODE);
+					const bullet = Bullet.spawn(this.velocity, this.degrees + spacing * i, this.position, EffectType.EXPLODE);
 					bullet.#explodable = false;
 				}
 			}
@@ -111,12 +97,12 @@ class Bullet extends Entity {
 				Ammo.spawn(collidingAsteroid.position);
 			}
 
-			scoreBoard.addToScore(100);
+			GlobalData.scoreBoard.addToScore(100);
 			collidingAsteroid.dispose();
 			if (!this.#pierce) return this.dispose();
 		}
 
-		tracking: if (this.#type == EffectTypes.TRACKING && this.#trackingTarget != null) {//has tracking target, change angle toward target
+		tracking: if (this.#type == EffectType.TRACKING && this.#trackingTarget != null) {//has tracking target, change angle toward target
 			if (document.querySelector(`#${this.#trackingTarget.element.id}`) == null) {//target no longer exists, remove target
 				this.#trackingTarget = null;
 				break tracking;

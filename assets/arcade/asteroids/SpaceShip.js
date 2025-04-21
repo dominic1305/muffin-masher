@@ -19,7 +19,7 @@ class SpaceShip extends Entity {
 	#const_bombs;
 	#bombHits = 0;
 	#canBomb = true;
-	#bulletType = EffectTypes.DEFAULT;
+	#bulletType = EffectType.DEFAULT;
 	#ammo = 100;
 
 	get BulletType() {
@@ -75,7 +75,6 @@ class SpaceShip extends Entity {
 		}
 
 		document.querySelector('.space-ship-stats').style.visibility = 'visible';
-		document.querySelector('.play-area').appendChild(element);
 
 		const spaceship = new SpaceShip(element, velocity, rotationalVelocity, shields, bombs);
 		spaceship.#attachUserControl();
@@ -122,18 +121,18 @@ class SpaceShip extends Entity {
 	}
 
 	#checkCollisions() {
-		for (const asteroid of Asteroid.InstanceArr) {
+		for (const asteroid of GlobalData.asteroids.Enumerate()) {
 			if (!this.hasCollidedWith(asteroid) || this.#invincible) continue;
 
 			asteroid.dispose();
 			return this.#takeDamage();
 		}
 
-		for (const effect of Effect.InstanceArr) {
+		for (const effect of GlobalData.effects.Enumerate()) {
 			if (!this.hasCollidedWith(effect)) continue;
 
 			switch (effect.Type) {
-				case EffectTypes.SHIELD: {//add 1 shield
+				case EffectType.SHIELD: {//add 1 shield
 					this.#shields++;
 					const shield_element = document.createElement('img')
 					shield_element.src = './img/effect.png';
@@ -141,7 +140,7 @@ class SpaceShip extends Entity {
 					this.element.classList.add('shielded');
 					break;
 				}
-				case EffectTypes.BOMB: {//add 1 bomb
+				case EffectType.BOMB: {//add 1 bomb
 					this.#bombs++;
 					const shield_element = document.createElement('img')
 					shield_element.src = './img/effect.png';
@@ -158,23 +157,23 @@ class SpaceShip extends Entity {
 			this.#ammo = (new_ammo > 100) ? 100 : new_ammo;
 
 			effect.dispose();
-			scoreBoard.addToScore(500);
+			GlobalData.scoreBoard.addToScore(500);
 		}
 
-		for (const ammo of Ammo.InstanceArr) {
+		for (const ammo of GlobalData.ammos.Enumerate()) {
 			if (!this.hasCollidedWith(ammo)) continue;
 
 			const new_ammo = Math.floor(Math.random() * (8 - 3) + 3) + this.#ammo;
 			this.#ammo = (new_ammo > 100) ? 100 : new_ammo;
 
 			ammo.dispose();
-			scoreBoard.addToScore(10);
+			GlobalData.scoreBoard.addToScore(10);
 		}
 	}
 
 	/**@returns {Generator<{distance: number, asteroid: Asteroid}>}*/
 	*#getAsteroidDistances() {//enumerates distances of asteroids relative to spaceship location
-		for (const asteroid of Asteroid.InstanceArr) {
+		for (const asteroid of GlobalData.asteroids.Enumerate()) {
 			const relative_X = asteroid.position.x - this.position.x;
 			const relative_Y = asteroid.position.y - this.position.y;
 			yield { distance: relative_X / Math.cos(Math.atan2(relative_Y, relative_X)), asteroid: asteroid };
@@ -194,8 +193,8 @@ class SpaceShip extends Entity {
 		shockwave.src = './img/shockwave.png';
 		shockwave.style.top = `${this.position.y}px`;
 		shockwave.style.left = `${this.position.x}px`;
-		document.querySelector('.play-area').appendChild(shockwave);
-		setTimeout(() => document.querySelector('.play-area').removeChild(shockwave), 500);
+		GlobalData.playArea.appendChild(shockwave);
+		setTimeout(() => GlobalData.playArea.removeChild(shockwave), 500);
 
 		Asteroid.toggleSpawns();
 		for (const { distance, asteroid } of this.#getAsteroidDistances()) {
@@ -205,11 +204,11 @@ class SpaceShip extends Entity {
 			setTimeout(() => {
 				this.#bombHits--;
 
-				if (Asteroid.InstanceArr.indexOf(asteroid) == -1) return; //asteroid has been destroyed already, pointer no longer exists
+				if (!GlobalData.asteroids.Contains(asteroid)) return; //asteroid has been destroyed already, pointer no longer exists
 				if (Math.floor(Math.random() * 2) == 0) Ammo.spawn(asteroid.position); //50% chance to spawn an ammo
 
 				asteroid.dispose();
-				scoreBoard.addToScore(100);
+				GlobalData.scoreBoard.addToScore(100);
 			}, distance / 0.992); //shockwave velocity 0.992px/s
 		}
 
@@ -224,7 +223,7 @@ class SpaceShip extends Entity {
 				case 'a': this.rotationalVelocity = -this.#const_RotationalVelocity; break;
 				case 's': this.velocity = this.#const_Velocity * 0.5; break;
 				case 'd': this.rotationalVelocity = this.#const_RotationalVelocity; break;
-				case ' ': if (!this.#activeKeys.SPACE && gameState) { this.#useBomb(); this.#activeKeys.SPACE = true; } break;
+				case ' ': if (!this.#activeKeys.SPACE && GlobalData.gameState) { this.#useBomb(); this.#activeKeys.SPACE = true; } break;
 			}
 		});
 		document.addEventListener('keyup', (e) => {//reset values when key is released
@@ -243,13 +242,14 @@ class SpaceShip extends Entity {
 		for (let i = 0; i < SpaceShip.#animationPorts.length; i++) this.#removeAnimation(i);
 		document.querySelector('#space-ship-shields-container').innerHTML = '';
 		document.querySelector('#space-ship-bombs-container').innerHTML = '';
-		document.querySelector('.play-area').removeChild(this.element);
-		player = null;
+		super.dispose();
+		GlobalData.player = null;
 	}
 
-	#rotate() {
+	#rotate() {//why can't javascript have proper operator overloading, I shouldn't have to do this!
 		const newAngle = this.degrees + this.rotationalVelocity;
-		this.element.style.transform = `translate(-50%, -50%) scale(2) rotate(${newAngle}deg)`;
+		this.degrees = ((newAngle < 0) ? newAngle + 360 : newAngle) % 360
+		this.element.style.transform = `translate(-50%, -50%) scale(2) rotate(${this.degrees}deg)`;
 	}
 
 	#shoot() {
@@ -257,56 +257,56 @@ class SpaceShip extends Entity {
 		this.#shotTimer = 50; //default timer reset
 
 		switch (this.#bulletType) {
-			case EffectTypes.DEFAULT: {//use default timer reset
+			case EffectType.DEFAULT: {//use default timer reset
 				Bullet.spawn(this.#const_Velocity * 2, this.degrees, this.position, this.#bulletType);
 				this.#ammo -= 1;
 				break;
 			}
-			case EffectTypes.GIANT: {//Bullet contructor handles size change
+			case EffectType.GIANT: {//Bullet contructor handles size change
 				Bullet.spawn(this.#const_Velocity * 1.5, this.degrees, this.position, this.#bulletType);
 				this.#shotTimer = 75;
 				this.#ammo -= 1;
 				break;
 			}
-			case EffectTypes.RAPID: {//shoot twice as fast and faster bullets
+			case EffectType.RAPID: {//shoot twice as fast and faster bullets
 				Bullet.spawn(this.#const_Velocity * 2.5, this.degrees, this.position, this.#bulletType);
 				this.#shotTimer = 25;
 				this.#ammo -= 1;
 				break;
 			}
-			case EffectTypes.SPREAD: {//use default timer reset
+			case EffectType.SPREAD: {//use default timer reset
 				Bullet.spawn(this.#const_Velocity * 2, this.degrees, this.position, this.#bulletType);
 				Bullet.spawn(this.#const_Velocity * 2, this.degrees + 15, this.position, this.#bulletType);
 				Bullet.spawn(this.#const_Velocity * 2, this.degrees - 15, this.position, this.#bulletType);
 				this.#ammo -= 3;
 				break;
 			}
-			case EffectTypes.PIERCE: {//Bullet constructor handles pierce flag set
+			case EffectType.PIERCE: {//Bullet constructor handles pierce flag set
 				Bullet.spawn(this.#const_Velocity * 2, this.degrees, this.position, this.#bulletType);
 				this.#shotTimer = 40;
 				this.#ammo -= 1;
 				break;
 			}
-			case EffectTypes.EXPLODE: {//Bullet constructor handles bullet destruction
+			case EffectType.EXPLODE: {//Bullet constructor handles bullet destruction
 				Bullet.spawn(this.#const_Velocity * 1.5, this.degrees, this.position, this.#bulletType);
 				this.#shotTimer = 65;
 				this.#ammo -= 2;
 				break;
 			}
-			case EffectTypes.TRACKING: {//Bullet move method handles tracking
-				if (Asteroid.InstanceArr.length == 0) { this.#shotTimer = 0; break; } //no tracking target available, don't spawn
+			case EffectType.TRACKING: {//Bullet move method handles tracking
+				if (GlobalData.asteroids.Length == 0) { this.#shotTimer = 0; break; } //no tracking target available, don't spawn
 				Bullet.spawn(this.#const_Velocity * 1.5, this.degrees, this.position, this.#bulletType);
 				this.#shotTimer = 75;
 				this.#ammo -= 5;
 				break;
 			}
-			case EffectTypes.SPLIT: {//shoot a bullet in front and behind
+			case EffectType.SPLIT: {//shoot a bullet in front and behind
 				Bullet.spawn(this.#const_Velocity * 2, this.degrees, this.position, this.#bulletType);
 				Bullet.spawn(this.#const_Velocity * 2, (this.degrees + 180) % 360, this.position, this.#bulletType);
 				this.#ammo -= 2;
 				break;
 			}
-			case EffectTypes.FLAME: {//very fast shot speed, very short distence, & smaller bullets. Bullet constructor handles bullet destruction & size alteration
+			case EffectType.FLAME: {//very fast shot speed, very short distence, & smaller bullets. Bullet constructor handles bullet destruction & size alteration
 				Bullet.spawn(this.#const_Velocity * 2, this.degrees, this.position, this.#bulletType);
 				this.#shotTimer = 3;
 				this.#ammo -= 0.25; //don't instantly consume all the user's ammo
@@ -314,7 +314,7 @@ class SpaceShip extends Entity {
 			}
 			default: {//not valid bullet type, fall back to default bullet type
 				console.warn('invalid bullet type, falling back to default');
-				this.#bulletType = EffectTypes.DEFAULT;
+				this.#bulletType = EffectType.DEFAULT;
 				Bullet.spawn(this.#const_Velocity * 2, this.degrees, this.position, this.#bulletType);
 				this.#ammo -= 1;
 				break;
